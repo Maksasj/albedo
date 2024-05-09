@@ -45,4 +45,9 @@ GradientLayer* create_gradient_layer(unsigned int width, unsigned int height) {
     return layer;
 }
 
+void free_gradient(GradientLayer* gradient) {
+    free(gradient->cells);
+    free(gradient);
+}
+
 #endif

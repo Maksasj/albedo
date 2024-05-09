@@ -6,8 +6,8 @@
 
 #include "stb_image_write.h"
 
-#define GRID_WIDTH 64
-#define GRID_HEIGHT 64
+#define GRID_WIDTH 8
+#define GRID_HEIGHT 8
 
 #define EULER_NUMBER 2.71828
 #define EULER_NUMBER_F 2.71828182846
@@ -123,6 +123,11 @@ StateLayer* create_state_layer(unsigned int width, unsigned int height) {
     }
 
     return layer;
+}
+
+void free_states(StateLayer* states) {
+    free(states->cells);
+    free(states);
 }
 
 void export_state_layer_to_png(StateLayer* layer, char* fileName) {
@@ -341,8 +346,101 @@ float calc_path(GradientLayer* layer, int startX, int startY, int endX, int endY
     trace_path(dir, layer, startX, startY, endX, endY);
 }
 
+typedef struct Model {
+    StateLayer* states[2];
+    GradientLayer* rules;
+
+    unsigned int iteration;
+    unsigned char newIndex;    
+} Model;
+
+Model* create_model(unsigned int width, unsigned int height) {
+    Model* model = (Model*) malloc(sizeof(Model));
+
+    model->rules = create_gradient_layer(width, height);
+
+    model->states[0] = create_state_layer(width, height);
+    model->states[1] = create_state_layer(width, height);
+
+    model->iteration = 0;
+
+    return model;
+}
+
+void simulate_model(Model* model) {
+    int old = model->iteration % 2;
+    int new = (model->iteration + 1) % 2;
+
+    model->newIndex = new;
+
+    calculate_new_state(model->states[new], model->states[old], model->rules);
+    ++model->iteration;
+}
+
+void set_inputs_model(Model* model, float input[]) {
+    for(int i = 0; i < GRID_WIDTH; ++i) {
+        model->states[0]->cells[i] = input[i];
+        model->states[1]->cells[i] = input[i];
+    }
+}
+
+float calculate_error(Model* model, float expectedOutput[]) {
+    float error = 0.0;
+
+    for(int i = 0; i < GRID_WIDTH; ++i) {
+        error += fabs(model->states[model->newIndex]->cells[i + 7*GRID_WIDTH] - expectedOutput[i]);
+    }
+
+    return error / (float) GRID_WIDTH;
+}
+
+void free_model(Model* model) {
+    free_gradient(model->rules);
+
+    free_states(model->states[0]);
+    free_states(model->states[1]);
+
+    free(model);
+}
+
 int main() {
     srand(time(0));
+
+    Model* model = NULL;
+
+    float input[GRID_WIDTH] = {1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0};
+    float output[GRID_WIDTH] = {1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    int i = 0;
+    for(;;++i) {
+        model = create_model(GRID_WIDTH, GRID_HEIGHT);
+
+
+        printf("Simulating model %d\n", i);
+
+        for(int i = 0; i < 16; ++i) {
+            set_inputs_model(model, input);
+            simulate_model(model);
+            set_inputs_model(model, input);
+        }
+
+        float error = calculate_error(model, output);
+
+        if(error < 0.05)
+            break;
+
+        free_model(model);
+    }
+
+    export_gradient_layer_to_png(model->rules, "gradient.png");
+    export_state_layer_to_png(model->states[model->newIndex], "state.png");
+
+    printf("Model error %f\n", calculate_error(model, output));
+
+    free_model(model);
+
+
+    /*
     GradientLayer* layer = create_gradient_layer(GRID_WIDTH, GRID_HEIGHT);
 
     StateLayer* states[2];
@@ -353,39 +451,12 @@ int main() {
         states[0]->cells[i] = (rand() % 255) / 255.0f;
     }
 
-    float input[GRID_WIDTH] = {1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0};
-    float output[GRID_WIDTH] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
-
-    /*
-    // Train
-    for(int i = 0; i < GRID_WIDTH; ++i) {
-        if(output[i] > 0.0f) {
-            for(int j = 0; j < GRID_WIDTH; ++j) {
-                calc_path(layer, i, 0, j, 7);
-            }
-        }
-    }
-    */
-
-    // calc_path(layer, 0, 0, 5, 5);
-    // calc_path(layer, 7, 7, 5, 5);
-
+    
     export_gradient_layer_to_png(layer, "gradient.png");
 
     for(int i = 0;; ++i) {
         int oldS = i % 2;
         int newS = (i + 1) % 2;
-
-        // Train
-        /*
-        for(int i = 0; i < GRID_WIDTH; ++i) {
-            if(output[i] > 0.0f) {
-                for(int j = 0; j < GRID_WIDTH; ++j) {
-                    calc_path(layer, i, 0, j, 7);
-                }
-            }
-        }
-        */
 
         export_gradient_layer_to_png(layer, "gradient.png");
 
@@ -417,6 +488,7 @@ int main() {
 
         int c = getchar();
     }
+    */
 
     return 0;
 }
