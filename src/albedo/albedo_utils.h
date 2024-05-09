@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 
+#define albedo_min(a,b) (((a)<(b))?(a):(b))
+#define albedo_max(a,b) (((a)>(b))?(a):(b))
+
 double albedo_clampd(double d, double min, double max) {
   const double t = d < min ? min : d;
   return t > max ? max : t;

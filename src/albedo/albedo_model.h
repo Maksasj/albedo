@@ -88,6 +88,11 @@ void albedo_simulate_model_step(AlbedoModel* model) {
     ++model->iteration;
 }
 
+void albedo_simulate_model_steps(AlbedoModel* model, unsigned int steps) {
+    for(int i = 0; i < steps; ++i) 
+        albedo_simulate_model_step(model);
+}
+
 // =========================================================
 void set_inputs_model(AlbedoModel* model, float input[]) {
     for(int i = 0; i < model->width; ++i) {
@@ -100,7 +105,7 @@ float calculate_error_delta(AlbedoModel* model, float expectedOutput[]) {
     float error = 0.0;
 
     for(int i = 0; i < model->width; ++i) {
-        error += fabs(model->state[model->newIndex]->neurons[i + 7*model->width] - expectedOutput[i]);
+        error += fabs(expectedOutput[i] - model->state[model->newIndex]->neurons[i + 7*model->width]);
     }
 
     return error;

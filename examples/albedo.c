@@ -100,9 +100,11 @@ void export_state_layer_to_png(AlbedoNeuronLayer* layer, char* fileName) {
     free(grid);
 }
 
-#define SAMPLE_MODELS 16
+#define SAMPLE_MODELS 100
 #define TEST_CASES 4
-#define STEPS 50
+#define STEPS 25
+
+#define ALBEDO_EPSILON 0.05
 
 int main() {
     srand(time(0));
@@ -131,21 +133,19 @@ int main() {
     for(;;++i) {
         int bestIndex = -1;
         float bestError = FLT_MAX;
-        unsigned char hasBetter = 0;
 
+        // Run simulations across all models
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             AlbedoModel* model = models[m];
 
             float error = 0.0;
 
             for(int t = 0; t < TEST_CASES; ++t) {
-                for(int i = 0; i < STEPS; ++i) {
-                    set_inputs_model(model, inputs[t]);
-                    albedo_simulate_model_step(model);
-                    set_inputs_model(model, inputs[t]);
-                }
+                set_inputs_model(model, inputs[t]);
+                albedo_simulate_model_steps(model, STEPS);
+                set_inputs_model(model, inputs[t]);
 
-                error += calculate_error_delta(models[m], outputs[t]);
+                error = calculate_error_delta(models[m], outputs[t]);
             }
 
             error /= TEST_CASES;
@@ -153,18 +153,18 @@ int main() {
             if(error < bestError) {
                 bestError = error;
                 bestIndex = m;
-                hasBetter = 1;
             }
         }
 
         if(bestIndex != -1) 
             bestModel = models[bestIndex];
 
-        printf("Simulated epoch %d, best model error % f\n", i, bestError);
+        printf("Simulated epoch %d, simulated %d generations, best model error % f\n", i, i*SAMPLE_MODELS, bestError);
 
-        if(bestError < 0.01)
+        if(bestError <= 0.00001)
             break;
 
+        // Delete all models
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             if(m == bestIndex) {
                 models[m] = NULL;
@@ -175,27 +175,19 @@ int main() {
             models[m] = NULL;
         }
 
+        // Populate best model
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             models[m] = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
             memcpy(models[m]->weights->neurons, bestModel->weights->neurons, GRID_WIDTH*GRID_HEIGHT*sizeof(AlbedoNeuronWeight));
 
             AlbedoModel* model = models[m];
-
-            for(int x = 0; x < GRID_WIDTH; ++x) {
-                for(int y = 0; y < GRID_HEIGHT; ++y) {
-                    for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                        for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
-                            model->weights->neurons[x + y*GRID_WIDTH].mask[w][h] += bestError * albedo_randf(-1.0f, 1.0f);
-                            albedo_clampf(model->weights->neurons[x + y*GRID_WIDTH].mask[w][h], -1.0, 1.0);
-                        }
-                    }
-                }
-            }
+            albedo_tune_weights_layer(model->weights, ALBEDO_EPSILON);
         }
 
         albedo_free_model(bestModel);
     }
 
+    // Show case best model
     for(int t = 0; t < TEST_CASES; ++t) {
         printf("Test case: ");
         for(int i = 0; i < GRID_WIDTH; ++i) {
