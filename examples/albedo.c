@@ -185,7 +185,7 @@ void calculate_new_state(StateLayer* newState, StateLayer* oldState, GradientLay
 
             newState->cells[x + y*width] = clamp(value, 0.0, 1.0);
 
-            // newState->cells[x + y*width] = sigmoidf(value);
+            // newState->cells[x + y*width] = value;
         }
     }
 }
@@ -385,14 +385,18 @@ void set_inputs_model(Model* model, float input[]) {
     }
 }
 
-float calculate_error(Model* model, float expectedOutput[]) {
+float calculate_error_delta(Model* model, float expectedOutput[]) {
     float error = 0.0;
 
     for(int i = 0; i < GRID_WIDTH; ++i) {
         error += fabs(model->states[model->newIndex]->cells[i + 7*GRID_WIDTH] - expectedOutput[i]);
     }
 
-    return error / (float) GRID_WIDTH;
+    return error;
+}
+
+float calculate_error(Model* model, float expectedOutput[]) {
+    return calculate_error_delta(model, expectedOutput) / (float) GRID_WIDTH;
 }
 
 void free_model(Model* model) {
@@ -405,12 +409,25 @@ void free_model(Model* model) {
 }
 
 #define SAMPLE_MODELS 16
+#define TEST_CASES 4
+#define STEPS 50
 
 int main() {
     srand(time(0));
 
-    float input[GRID_WIDTH] = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
-    float output[GRID_WIDTH] = {1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0};
+    float inputs[TEST_CASES][GRID_WIDTH] = {
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+    };
+
+    float outputs[TEST_CASES][GRID_WIDTH] = {
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+        { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+    };
 
     Model* bestModel = NULL;
 
@@ -421,36 +438,53 @@ int main() {
 
     int i = 0;
     for(;;++i) {
-        printf("Simulating epoch %d\n", i);
+        int bestIndex = -1;
+        float bestError = FLT_MAX;
+        unsigned char hasBetter = 0;
 
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             Model* model = models[m];
 
-            for(int i = 0; i < 16; ++i) {
-                set_inputs_model(model, input);
-                simulate_model(model);
-                set_inputs_model(model, input);
+            float error = 0.0;
+
+            for(int t = 0; t < TEST_CASES; ++t) {
+                for(int i = 0; i < STEPS; ++i) {
+                    set_inputs_model(model, inputs[t]);
+                    simulate_model(model);
+                    set_inputs_model(model, inputs[t]);
+                }
+
+                error += calculate_error_delta(models[m], outputs[t]);
             }
-        }
 
-        int bestIndex = -1;
-        float bestError = FLT_MAX;
-
-        for(int m = 0; m < SAMPLE_MODELS; ++m) {
-            float error = calculate_error(models[m], output);
+            error /= TEST_CASES;
 
             if(error < bestError) {
                 bestError = error;
                 bestIndex = m;
+                hasBetter = 1;
             }
         }
+
+        /*
+        if(hasBetter == 0) {
+            printf("Recreating base\n");
+            
+            for(int m = 0; m < SAMPLE_MODELS; ++m) {
+                free_model(models[m]);
+                models[m] = create_model(GRID_WIDTH, GRID_HEIGHT);
+            }
+
+            continue;
+        }
+        */
 
         if(bestIndex != -1) 
             bestModel = models[bestIndex];
 
-        printf("Best error % f\n", bestError);
+        printf("Simulated epoch %d, best model error % f\n", i, bestError);
 
-        if(bestError < 0.001)
+        if(bestError < 0.01)
             break;
 
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
@@ -471,10 +505,10 @@ int main() {
 
             for(int x = 0; x < GRID_WIDTH; ++x) {
                 for(int y = 0; y < GRID_HEIGHT; ++y) {
-                    model->rules->cells[x + y*GRID_WIDTH].value[UP]     += bestError * (rand() % 255 - 128) / 128.0f;
-                    model->rules->cells[x + y*GRID_WIDTH].value[RIGHT]  += bestError * (rand() % 255 - 128) / 128.0f;
-                    model->rules->cells[x + y*GRID_WIDTH].value[DOWN]   += bestError * (rand() % 255 - 128) / 128.0f;
-                    model->rules->cells[x + y*GRID_WIDTH].value[LEFT]   += bestError * (rand() % 255 - 128) / 128.0f;
+                    for(int d = 0; d < 4; ++d) {
+                        model->rules->cells[x + y*GRID_WIDTH].value[d] += bestError * (rand() % 256 - 128) / 128.0f;    
+                        clamp(model->rules->cells[x + y*GRID_WIDTH].value[d], -1.0, 1.0);
+                    }
                 }
             }
         }
@@ -482,22 +516,29 @@ int main() {
         free_model(bestModel);
     }
 
-  
+    for(int t = 0; t < TEST_CASES; ++t) {
+        printf("Test case: ");
+        for(int i = 0; i < GRID_WIDTH; ++i) {
+            printf(" %1.f", inputs[t][i]);
+        }
+        printf("\n");
 
-    printf("Model error %f\n", calculate_error(bestModel, output));
+        printf("Model error %f\n", calculate_error(bestModel, outputs[t]));
 
-    memset(bestModel->states[0]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
-    memset(bestModel->states[1]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+        memset(bestModel->states[0]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+        memset(bestModel->states[1]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
 
-    for(int i = 0; i < 16; ++i) {
-        set_inputs_model(bestModel, input);
-        simulate_model(bestModel);
-        set_inputs_model(bestModel, input);
+        for(int i = 0; i < STEPS; ++i) {
+            printf("Step %d/%d", i, STEPS);
+            set_inputs_model(bestModel, inputs[t]);
+            simulate_model(bestModel);
+            set_inputs_model(bestModel, inputs[t]);
 
-        export_gradient_layer_to_png(bestModel->rules, "gradient.png");
-        export_state_layer_to_png(bestModel->states[bestModel->newIndex], "state.png");
+            export_gradient_layer_to_png(bestModel->rules, "gradient.png");
+            export_state_layer_to_png(bestModel->states[bestModel->newIndex], "state.png");
 
-        int c = getchar();
+            int c = getchar();
+        }
     }
 
     free_model(bestModel);

@@ -35,10 +35,10 @@ GradientLayer* create_gradient_layer(unsigned int width, unsigned int height) {
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            layer->cells[x + y*width].value[UP]     = (rand() % 255 - 128) / 128.0f;
-            layer->cells[x + y*width].value[RIGHT]  = (rand() % 255 - 128) / 128.0f;
-            layer->cells[x + y*width].value[DOWN]   = (rand() % 255 - 128) / 128.0f;
-            layer->cells[x + y*width].value[LEFT]   = (rand() % 255 - 128) / 128.0f;
+            layer->cells[x + y*width].value[UP]     = (rand() % 256 - 128) / 128.0f;
+            layer->cells[x + y*width].value[RIGHT]  = (rand() % 256 - 128) / 128.0f;
+            layer->cells[x + y*width].value[DOWN]   = (rand() % 256 - 128) / 128.0f;
+            layer->cells[x + y*width].value[LEFT]   = (rand() % 256 - 128) / 128.0f;
         }
     }
 
