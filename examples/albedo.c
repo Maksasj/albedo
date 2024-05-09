@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 
 #include "albedo/albedo.h"
 
@@ -403,42 +404,103 @@ void free_model(Model* model) {
     free(model);
 }
 
+#define SAMPLE_MODELS 16
+
 int main() {
     srand(time(0));
 
-    Model* model = NULL;
+    float input[GRID_WIDTH] = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    float output[GRID_WIDTH] = {1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0};
 
-    float input[GRID_WIDTH] = {1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0};
-    float output[GRID_WIDTH] = {1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    Model* bestModel = NULL;
+
+    Model* models[SAMPLE_MODELS] = { NULL };
+    for(int i = 0; i < SAMPLE_MODELS; ++i) {
+        models[i] = create_model(GRID_WIDTH, GRID_HEIGHT);
+    } 
 
     int i = 0;
     for(;;++i) {
-        model = create_model(GRID_WIDTH, GRID_HEIGHT);
+        printf("Simulating epoch %d\n", i);
 
+        for(int m = 0; m < SAMPLE_MODELS; ++m) {
+            Model* model = models[m];
 
-        printf("Simulating model %d\n", i);
-
-        for(int i = 0; i < 16; ++i) {
-            set_inputs_model(model, input);
-            simulate_model(model);
-            set_inputs_model(model, input);
+            for(int i = 0; i < 16; ++i) {
+                set_inputs_model(model, input);
+                simulate_model(model);
+                set_inputs_model(model, input);
+            }
         }
 
-        float error = calculate_error(model, output);
+        int bestIndex = -1;
+        float bestError = FLT_MAX;
 
-        if(error < 0.05)
+        for(int m = 0; m < SAMPLE_MODELS; ++m) {
+            float error = calculate_error(models[m], output);
+
+            if(error < bestError) {
+                bestError = error;
+                bestIndex = m;
+            }
+        }
+
+        if(bestIndex != -1) 
+            bestModel = models[bestIndex];
+
+        printf("Best error % f\n", bestError);
+
+        if(bestError < 0.001)
             break;
 
-        free_model(model);
+        for(int m = 0; m < SAMPLE_MODELS; ++m) {
+            if(m == bestIndex) {
+                models[m] = NULL;
+                continue;
+            }
+
+            free_model(models[m]);
+            models[m] = NULL;
+        }
+
+        for(int m = 0; m < SAMPLE_MODELS; ++m) {
+            models[m] = create_model(GRID_WIDTH, GRID_HEIGHT);
+            memcpy(models[m]->rules->cells, bestModel->rules->cells, GRID_WIDTH*GRID_HEIGHT*sizeof(GradientCell));
+
+            Model* model = models[m];
+
+            for(int x = 0; x < GRID_WIDTH; ++x) {
+                for(int y = 0; y < GRID_HEIGHT; ++y) {
+                    model->rules->cells[x + y*GRID_WIDTH].value[UP]     += bestError * (rand() % 255 - 128) / 128.0f;
+                    model->rules->cells[x + y*GRID_WIDTH].value[RIGHT]  += bestError * (rand() % 255 - 128) / 128.0f;
+                    model->rules->cells[x + y*GRID_WIDTH].value[DOWN]   += bestError * (rand() % 255 - 128) / 128.0f;
+                    model->rules->cells[x + y*GRID_WIDTH].value[LEFT]   += bestError * (rand() % 255 - 128) / 128.0f;
+                }
+            }
+        }
+
+        free_model(bestModel);
     }
 
-    export_gradient_layer_to_png(model->rules, "gradient.png");
-    export_state_layer_to_png(model->states[model->newIndex], "state.png");
+  
 
-    printf("Model error %f\n", calculate_error(model, output));
+    printf("Model error %f\n", calculate_error(bestModel, output));
 
-    free_model(model);
+    memset(bestModel->states[0]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+    memset(bestModel->states[1]->cells, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
 
+    for(int i = 0; i < 16; ++i) {
+        set_inputs_model(bestModel, input);
+        simulate_model(bestModel);
+        set_inputs_model(bestModel, input);
+
+        export_gradient_layer_to_png(bestModel->rules, "gradient.png");
+        export_state_layer_to_png(bestModel->states[bestModel->newIndex], "state.png");
+
+        int c = getchar();
+    }
+
+    free_model(bestModel);
 
     /*
     GradientLayer* layer = create_gradient_layer(GRID_WIDTH, GRID_HEIGHT);
@@ -484,7 +546,7 @@ int main() {
 
         export_state_layer_to_png(states[newS], "state.png");
 
-        printf("System value %f, grad value %f\n", calcl_state_value(states[newS]), calcl_gradient_value(layer));
+            printf("System value %f, grad value %f\n", calcl_state_value(states[newS]), calcl_gradient_value(layer));
 
         int c = getchar();
     }
