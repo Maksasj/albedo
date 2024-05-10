@@ -1,6 +1,12 @@
-<img width="128" height="128" align="left" style="float: left; margin: 0 10px 0 0;" alt="MS-DOS logo" src="https://github.com/Maksasj/albedo/blob/master/logo.gif">   
+<div>
+  <img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="128px">
+  
+  # Albedo - neural cellular automata
 
-# Albedo - neural cellular automata
+  > albedo is not a new javascript framework btw !
+  
+  <br>
+</div>
 
 ## Building
 ```
