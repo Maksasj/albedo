@@ -4,137 +4,60 @@
 #include <float.h>
 #include <time.h>
 
+#include "albedo_visualization.h"
 #include "albedo/albedo.h"
-
-#include "stb_image_write.h"
 
 #define GRID_WIDTH 8
 #define GRID_HEIGHT 8
 
-typedef struct RGB {
-	unsigned char R;
-	unsigned char G;
-	unsigned char B;
-} RGB;
-
-typedef struct HSL {
-	int H;
-	float S;
-	float L;
-} HSL;
-
-float hue_to_rgb(float v1, float v2, float vH) {
-	if (vH < 0)
-		vH += 1;
-
-	if (vH > 1)
-		vH -= 1;
-
-	if ((6 * vH) < 1)
-		return (v1 + (v2 - v1) * 6 * vH);
-
-	if ((2 * vH) < 1)
-		return v2;
-
-	if ((3 * vH) < 2)
-		return (v1 + (v2 - v1) * ((2.0f / 3) - vH) * 6);
-
-	return v1;
-}
-
-struct RGB hsl_to_rgb(struct HSL hsl) {
-	RGB rgb;
-
-	if (hsl.S == 0) {
-		rgb.R = rgb.G = rgb.B = (unsigned char)(hsl.L * 255);
-	} else {
-		float v1, v2;
-		float hue = (float)hsl.H / 360;
-
-		v2 = (hsl.L < 0.5) ? (hsl.L * (1 + hsl.S)) : ((hsl.L + hsl.S) - (hsl.L * hsl.S));
-		v1 = 2 * hsl.L - v2;
-
-		rgb.R = (unsigned char)(255 * hue_to_rgb(v1, v2, hue + (1.0f / 3)));
-		rgb.G = (unsigned char)(255 * hue_to_rgb(v1, v2, hue));
-		rgb.B = (unsigned char)(255 * hue_to_rgb(v1, v2, hue - (1.0f / 3)));
-	}
-
-	return rgb;
-}
-
-void export_gradient_layer_to_png(AlbedoWeightsLayer* layer, char* fileName) {
-    unsigned int size = layer->height * layer->width;
-    unsigned int* grid = malloc(size * sizeof(unsigned int));
-
-    for(int i = 0; i < size; ++i) {
-        unsigned char r = (layer->neurons[i].mask[1][0] + 0.5f) * 255.0f;   
-        unsigned char g = (layer->neurons[i].mask[0][1] + 0.5f) * 255.0f;
-        unsigned char b = (layer->neurons[i].mask[2][1] + 0.5f) * 255.0f;
-        unsigned char a = (layer->neurons[i].mask[1][2] + 0.5f) * 255.0f;
-
-        grid[i] = (a << 24) | (b << 16) | (g << 8) | (r);
-    }   
-
-    stbi_write_png(fileName, layer->width, layer->height, 4, grid, GRID_WIDTH*4);
-    
-    free(grid);
-}
-
-void export_state_layer_to_png(AlbedoNeuronLayer* layer, char* fileName) {
-    unsigned int size = layer->height * layer->width;
-    unsigned int* grid = malloc(size * sizeof(unsigned int));
-
-    for(int i = 0; i < size; ++i) {
-        HSL hsl;
-        hsl.H = (1.0 - layer->neurons[i]) * 240;
-        hsl.L = 0.5f;
-        hsl.S = 1.0f;
-
-        RGB rgb = hsl_to_rgb(hsl);
-
-        grid[i] = (255 << 24) | (rgb.B << 16) | (rgb.G << 8) | (rgb.R);
-    }   
-
-    stbi_write_png(fileName, layer->width, layer->height, 4, grid, GRID_WIDTH*4);
-    
-    free(grid);
-}
-
 #define SAMPLE_MODELS 100
-#define TEST_CASES 4
-#define STEPS 25
+#define STEPS 50
 
 #define ALBEDO_EPSILON 0.05
 
-float inputs[TEST_CASES][GRID_WIDTH] = {
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-};
+void run_show_resulting_image(AlbedoModel* model, float** inputs) {
+    unsigned int size = 8 * 8;
+    unsigned int* grid = malloc(size * sizeof(unsigned int));
 
-float outputs[TEST_CASES][GRID_WIDTH] = {
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-    { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-};
+    for(int x = 0; x < 8; ++x) {
+        for(int y = 0; y < 8; ++y) {
+            memset(model->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+            memset(model->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
 
-void run_tests_on_model(AlbedoModel* bestModel) {
+            for(int s = 0; s < STEPS; ++s) {
+                set_inputs_model(model, inputs[x + y*8]);
+                albedo_simulate_model_step(model);
+                set_inputs_model(model, inputs[x + y*8]);
+            }
+
+            float value = model->state[model->newIndex]->neurons[3 + (model->height-1)*model->width];
+
+            unsigned char r = value * 255.0f;   
+
+            grid[x + y*8] = (255 << 24) | (r << 16) | (r << 8) | (r);
+        }
+    }
+
+    export_gradient_layer_to_png(model->weights, "weights.png");
+
+    stbi_write_png("result.png", 8, 8, 4, grid, 8*4);
+}
+
+void run_tests_on_model(AlbedoModel* bestModel, float** inputs, float** outputs, unsigned int testCases) {
     // Show case best model
     float totalModelError = 0.0;
 
-    for(int t = 0; t < TEST_CASES; ++t) {
+    for(int t = 0; t < testCases; ++t) {
         printf("Test case %d\n", t);
         printf("Input date: ");
         for(int i = 0; i < GRID_WIDTH; ++i) {
-            printf(" %1.f", inputs[t][i]);
+            printf(" %f", inputs[t][i]);
         }
         printf("\n");
 
         printf("Expected output: ");
         for(int i = 0; i < GRID_WIDTH; ++i) {
-            printf(" %1.f", outputs[t][i]);
+            printf(" %f", outputs[t][i]);
         }
         printf("\n");
 
@@ -149,7 +72,7 @@ void run_tests_on_model(AlbedoModel* bestModel) {
 
         printf("Gotten outputs: ");
         for(int i = 0; i < GRID_WIDTH; ++i) {   
-            printf(" %1.f", bestModel->state[bestModel->newIndex]->neurons[i + 7*GRID_WIDTH]);
+            printf(" %f", bestModel->state[bestModel->newIndex]->neurons[i + 7*GRID_WIDTH]);
         }
         printf("\n");
 
@@ -162,7 +85,7 @@ void run_tests_on_model(AlbedoModel* bestModel) {
         export_state_layer_to_png(bestModel->state[bestModel->newIndex], "state.png");
     }
 
-    totalModelError /= (float) TEST_CASES;
+    totalModelError /= (float) testCases;
 
     printf("Total modal error %f\n", totalModelError);
 }
@@ -170,12 +93,45 @@ void run_tests_on_model(AlbedoModel* bestModel) {
 int main() {
     srand(time(0));
 
+    int width, height, channels;
+    void* bytes = stbi_load("number.png", &width, &height, &channels, 0);
+
+    printf("%d %d %d\n", width, height, channels);
+
+    unsigned int testCases = width*height;
+
+    float** inputs = (float**) malloc(sizeof(float*) * testCases);
+    float** outputs = (float**) malloc(sizeof(float*) * testCases);
+    
+    for(int t = 0; t < testCases; ++t) {
+        inputs[t] = (float*) malloc(sizeof(float) * GRID_WIDTH);
+        outputs[t] = (float*) malloc(sizeof(float) * GRID_WIDTH);
+
+        memset(inputs[t], 0, sizeof(float) * GRID_WIDTH);
+        memset(outputs[t], 1.0f, sizeof(float) * GRID_WIDTH);
+    }
+
+    for(int x = 0; x < width; ++x) {
+        for(int y = 0; y < height; ++y) {
+            unsigned char pixel = ((unsigned char*) bytes)[1 + (x + y*width) * channels];
+            float value = (float) pixel / (float) 256.0f;
+
+            inputs[x + y*width][0] = (float) x / (float) width; 
+            inputs[x + y*width][7] = (float) y / (float) height; 
+            
+            outputs[x + y*width][7] = value; 
+        }
+    }
+
+    printf("Have prepared test date \n");
+
     AlbedoModel* bestModel = NULL;
 
     AlbedoModel* models[SAMPLE_MODELS] = { NULL };
     for(int i = 0; i < SAMPLE_MODELS; ++i)
         models[i] = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
 
+    printf("Started training\n");
     for(int i = 0;;++i) {
         int bestIndex = -1;
         float bestError = FLT_MAX;
@@ -185,7 +141,7 @@ int main() {
             float error = 0.0;
 
             // Simulate each test case and collect error
-            for(int t = 0; t < TEST_CASES; ++t) {
+            for(int t = 0; t < testCases; ++t) {
                 memset(models[m]->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
                 memset(models[m]->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
 
@@ -198,7 +154,9 @@ int main() {
                 error += calculate_error(models[m], outputs[t]);
             }
 
-            error /= (float) (TEST_CASES);
+            error /= (float) (testCases);
+
+            printf("Error %f\n", error);
             
             if(error < bestError) {
                 bestError = error;
@@ -207,10 +165,11 @@ int main() {
         }
 
         bestModel = models[bestIndex];
+        run_show_resulting_image(bestModel, inputs);
 
         printf("Simulated epoch %d, error %f, best index %d\n", i, bestError, bestIndex);
 
-        if(bestError < 0.01) {
+        if(bestError < 0.0001) {
             printf("Best error is %f, stopping training\n", bestError);
             break;
         }
@@ -232,13 +191,13 @@ int main() {
             memcpy(models[m]->weights->neurons, bestModel->weights->neurons, GRID_WIDTH*GRID_HEIGHT*sizeof(AlbedoNeuronWeight));
 
             AlbedoModel* model = models[m];
-            albedo_tune_weights_layer(model->weights, 0.25);
+            albedo_tune_weights_layer(model->weights, bestError);
         }
 
-        albedo_free_model(bestModel);
+        // albedo_free_model(bestModel);
     }
 
-    run_tests_on_model(bestModel);
+    run_tests_on_model(bestModel, inputs, outputs, testCases);
     albedo_free_model(bestModel);
 
     return 0;

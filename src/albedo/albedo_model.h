@@ -46,8 +46,6 @@ void albedo_free_model(AlbedoModel* model) {
     free(model);
 }
 
-
-
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights) {
     unsigned int width = newState->width;
     unsigned int height = newState->height;
@@ -103,7 +101,7 @@ float calculate_error_delta(AlbedoModel* model, float expectedOutput[]) {
     float error = 0.0;
 
     for(int i = 0; i < model->width; ++i)
-        error += fabs(model->state[model->newIndex]->neurons[i + 7*model->width] - expectedOutput[i]);
+        error += fabs(model->state[model->newIndex]->neurons[i + (model->height-1)*model->width] - expectedOutput[i]);
 
     return error;
 }
