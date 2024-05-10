@@ -27,13 +27,12 @@ void run_show_resulting_image(AlbedoModel* model, float** inputs) {
             for(int s = 0; s < STEPS; ++s) {
                 set_inputs_model(model, inputs[x + y*8]);
                 albedo_simulate_model_step(model);
-                set_inputs_model(model, inputs[x + y*8]);
             }
 
-            float value = model->state[model->newIndex]->neurons[3 + (model->height-1)*model->width];
+            float value = model->state[model->newIndex]->neurons[0 + (model->height-1)*model->width];
 
             unsigned char r = value * 255.0f;   
-
+            
             grid[x + y*8] = (255 << 24) | (r << 16) | (r << 8) | (r);
         }
     }
@@ -67,7 +66,6 @@ void run_tests_on_model(AlbedoModel* bestModel, float** inputs, float** outputs,
         for(int i = 0; i < STEPS; ++i) {
             set_inputs_model(bestModel, inputs[t]);
             albedo_simulate_model_step(bestModel);
-            set_inputs_model(bestModel, inputs[t]);
         }
 
         printf("Gotten outputs: ");
@@ -108,18 +106,22 @@ int main() {
         outputs[t] = (float*) malloc(sizeof(float) * GRID_WIDTH);
 
         memset(inputs[t], 0, sizeof(float) * GRID_WIDTH);
-        memset(outputs[t], 1.0f, sizeof(float) * GRID_WIDTH);
+        memset(outputs[t], 0, sizeof(float) * GRID_WIDTH);
     }
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            unsigned char pixel = ((unsigned char*) bytes)[1 + (x + y*width) * channels];
+            unsigned char pixel = ((unsigned char*) bytes)[1 + (y + x*height) * channels];
             float value = (float) pixel / (float) 256.0f;
 
             inputs[x + y*width][0] = (float) x / (float) width; 
             inputs[x + y*width][7] = (float) y / (float) height; 
-            
-            outputs[x + y*width][7] = value; 
+        
+            if(value > 0.5) {
+                outputs[x + y*width][0] = 1.0f; 
+            } else
+                outputs[x + y*width][0] = 0.0f; 
+
         }
     }
 
@@ -169,7 +171,7 @@ int main() {
 
         printf("Simulated epoch %d, error %f, best index %d\n", i, bestError, bestIndex);
 
-        if(bestError < 0.0001) {
+        if(bestError < 0.002f) {
             printf("Best error is %f, stopping training\n", bestError);
             break;
         }

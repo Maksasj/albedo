@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#define ALBEDO_NEURON_WEIGHT_MASK_WIDTH 3
-#define ALBEDO_NEURON_WEIGHT_MASK_HEIGHT 3
+#define ALBEDO_NEURON_WEIGHT_MASK_WIDTH 5
+#define ALBEDO_NEURON_WEIGHT_MASK_HEIGHT 5
 
 typedef struct AlbedoNeuronWeight {
     float mask[ALBEDO_NEURON_WEIGHT_MASK_WIDTH][ALBEDO_NEURON_WEIGHT_MASK_HEIGHT];
@@ -34,12 +34,14 @@ AlbedoWeightsLayer* albedo_new_weights_layer(unsigned int width, unsigned int he
 
             for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w)
                 for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h)
-                    layer->neurons[x + y*width].mask[w][h] = 0.0f;
+                    layer->neurons[x + y*width].mask[w][h] = albedo_randf(-1.0f, 1.0f);
             
+            /*
             layer->neurons[x + y*width].mask[1][0] = albedo_randf(-1.0f, 1.0f);
             layer->neurons[x + y*width].mask[0][1] = albedo_randf(-1.0f, 1.0f);
             layer->neurons[x + y*width].mask[2][1] = albedo_randf(-1.0f, 1.0f);
             layer->neurons[x + y*width].mask[1][2] = albedo_randf(-1.0f, 1.0f);
+            */
         }
     }
 

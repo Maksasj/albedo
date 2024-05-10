@@ -17,7 +17,7 @@ float albedo_clampf(float d, float min, float max) {
 }
 
 float albedo_randf(float min, float max) {
-    return min + ((rand() % 4096) / 4096.0f) * (max - min);
+    return min + ((rand() % RAND_MAX) / (float) RAND_MAX) * (max - min);
 }
 
 #endif
