@@ -1,12 +1,8 @@
-<div>
-  # Albedo - neural cellular automata
+# Albedo - neural cellular automata
 
-  <img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="128px">
+<img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="128px">
 
-  > albedo is not a new javascript framework btw !
-  
-  <br>
-</div>
+> albedo is not a new javascript framework btw !
 
 ## Building
 ```
