@@ -80,18 +80,22 @@ int main() {
 
     inputs[0][0] = 0.0f;
     inputs[0][1] = 0.0f;
-        outputs[0][0] = 0.0f;
+    inputs[0][2] = 1.0f; // Bias
+        outputs[0][0] = 1.0f;
 
     inputs[1][0] = 0.0f;
     inputs[1][1] = 1.0f;
+    inputs[1][2] = 1.0f; // Bias
         outputs[1][0] = 0.0f;
 
     inputs[2][0] = 0.0f;
     inputs[2][1] = 1.0f;
+    inputs[2][2] = 1.0f; // Bias
         outputs[2][0] = 0.0f;
     
     inputs[3][0] = 1.0f;
     inputs[3][1] = 1.0f;
+    inputs[3][2] = 1.0f; // Bias
         outputs[3][0] = 1.0f;
 
     printf("Have prepared test date \n");

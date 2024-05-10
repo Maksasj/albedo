@@ -65,11 +65,11 @@ void run_tests_on_model(AlbedoModel* bestModel, float** inputs, float** outputs,
 int main() {
     srand(time(0));
 
-    unsigned int testCases = 4;
+    unsigned int testCases = 2;
 
     float** inputs = (float**) malloc(sizeof(float*) * testCases);
     float** outputs = (float**) malloc(sizeof(float*) * testCases);
-    
+
     for(int t = 0; t < testCases; ++t) {
         inputs[t] = (float*) malloc(sizeof(float) * GRID_WIDTH);
         outputs[t] = (float*) malloc(sizeof(float) * GRID_WIDTH);
@@ -79,20 +79,12 @@ int main() {
     }
 
     inputs[0][0] = 0.0f;
-    inputs[0][1] = 0.0f;
-        outputs[0][0] = 0.0f;
-
-    inputs[1][0] = 0.0f;
-    inputs[1][1] = 1.0f;
-        outputs[1][0] = 0.0f;
-
-    inputs[2][0] = 0.0f;
-    inputs[2][1] = 1.0f;
-        outputs[2][0] = 0.0f;
+    inputs[0][1] = 1.0f;
+    outputs[0][0] = 1.0f;
     
-    inputs[3][0] = 1.0f;
-    inputs[3][1] = 1.0f;
-        outputs[3][0] = 1.0f;
+    inputs[1][0] = 1.0f;
+    inputs[1][1] = 1.0f;
+    outputs[1][0] = 0.0f;
 
     printf("Have prepared test date \n");
 
@@ -159,7 +151,7 @@ int main() {
             memcpy(models[m]->weights->neurons, bestModel->weights->neurons, GRID_WIDTH*GRID_HEIGHT*sizeof(AlbedoNeuronWeight));
 
             AlbedoModel* model = models[m];
-            albedo_tune_weights_layer(model->weights, bestError);
+            albedo_tune_weights_layer(model->weights, 0.25);
         }
 
         albedo_free_model(bestModel);
