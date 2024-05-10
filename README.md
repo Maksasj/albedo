@@ -1,7 +1,7 @@
 <div>
-  <img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="128px">
-  
   # Albedo - neural cellular automata
+
+  <img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="128px">
 
   > albedo is not a new javascript framework btw !
   
