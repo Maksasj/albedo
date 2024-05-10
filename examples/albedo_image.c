@@ -16,13 +16,22 @@
 #define ALBEDO_EPSILON 0.05
 
 void run_show_resulting_image(AlbedoModel* model, float** inputs) {
-    unsigned int size = 8 * 8;
+    int width = 8;
+    int height = 8;
+
+    unsigned int size = width * height;
     unsigned int* grid = malloc(size * sizeof(unsigned int));
 
-    for(int x = 0; x < 8; ++x) {
-        for(int y = 0; y < 8; ++y) {
+    for(int x = 0; x < width; ++x) {
+        for(int y = 0; y < height; ++y) {
             memset(model->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
             memset(model->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+
+            /*
+            float in[] = {
+                ((float) x / (float) width), ((float) y / (float) height), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+            };
+            */
 
             for(int s = 0; s < STEPS; ++s) {
                 set_inputs_model(model, inputs[x + y*8]);
@@ -31,15 +40,27 @@ void run_show_resulting_image(AlbedoModel* model, float** inputs) {
 
             float value = model->state[model->newIndex]->neurons[0 + (model->height-1)*model->width];
 
-            unsigned char r = value * 255.0f;   
-            
-            grid[x + y*8] = (255 << 24) | (r << 16) | (r << 8) | (r);
+            HSL hsl;
+            hsl.H = (1.0 - value) * 240;
+            hsl.L = 0.5f;
+            hsl.S = 1.0f;
+
+            RGB rgb = hsl_to_rgb(hsl);
+
+            grid[y + x*height] = (255 << 24) | (rgb.B << 16) | (rgb.G << 8) | (rgb.R);
         }
     }
 
     export_gradient_layer_to_png(model->weights, "weights.png");
 
-    stbi_write_png("result.png", 8, 8, 4, grid, 8*4);
+    static int frame = 0;
+
+    char fileName[50] = { '\0' };  
+    sprintf(fileName, "result/frame_%d.png", frame);
+    stbi_write_png(fileName, width, height, 4, grid, width*4);
+    stbi_write_png("result.png", width, height, 4, grid, width*4);
+
+    ++frame;
 }
 
 void run_tests_on_model(AlbedoModel* bestModel, float** inputs, float** outputs, unsigned int testCases) {
@@ -117,11 +138,14 @@ int main() {
             inputs[x + y*width][0] = (float) x / (float) width; 
             inputs[x + y*width][7] = (float) y / (float) height; 
         
+            outputs[x + y*width][0] = value;
+
+            /*
             if(value > 0.5) {
                 outputs[x + y*width][0] = 1.0f; 
             } else
                 outputs[x + y*width][0] = 0.0f; 
-
+            */
         }
     }
 
@@ -158,7 +182,7 @@ int main() {
 
             error /= (float) (testCases);
 
-            printf("Error %f\n", error);
+            // printf("Error %f\n", error);
             
             if(error < bestError) {
                 bestError = error;
