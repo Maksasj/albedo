@@ -52,10 +52,13 @@ void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error) {
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
+            // How we edit our mask
             for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
                 for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
-                    weights->neurons[x + y*width].mask[w][h] += error * albedo_randf(-1.0f, 1.0f);
-                    albedo_clampf(weights->neurons[x + y*width].mask[w][h], -1.0, 1.0);
+                    unsigned int index = x + y*width;
+
+                    weights->neurons[index].mask[w][h] += error * albedo_randf(-1.0f, 1.0f);
+                    weights->neurons[index].mask[w][h] = albedo_clampf(weights->neurons[index].mask[w][h], -1.0, 1.0);
                 }
             }
         }

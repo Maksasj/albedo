@@ -54,8 +54,6 @@ void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldStat
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            // GradientCell grad = weights->neurons[x + y*width];
-
             int maskWidth = ALBEDO_NEURON_WEIGHT_MASK_WIDTH / 2;
             int maskHeight = ALBEDO_NEURON_WEIGHT_MASK_HEIGHT / 2;
 
@@ -104,9 +102,8 @@ void set_inputs_model(AlbedoModel* model, float input[]) {
 float calculate_error_delta(AlbedoModel* model, float expectedOutput[]) {
     float error = 0.0;
 
-    for(int i = 0; i < model->width; ++i) {
-        error += fabs(expectedOutput[i] - model->state[model->newIndex]->neurons[i + 7*model->width]);
-    }
+    for(int i = 0; i < model->width; ++i)
+        error += fabs(model->state[model->newIndex]->neurons[i + 7*model->width] - expectedOutput[i]);
 
     return error;
 }

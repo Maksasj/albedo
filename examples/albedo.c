@@ -106,22 +106,69 @@ void export_state_layer_to_png(AlbedoNeuronLayer* layer, char* fileName) {
 
 #define ALBEDO_EPSILON 0.05
 
+float inputs[TEST_CASES][GRID_WIDTH] = {
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+};
+
+float outputs[TEST_CASES][GRID_WIDTH] = {
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+    { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+};
+
+void run_tests_on_model(AlbedoModel* bestModel) {
+    // Show case best model
+    float totalModelError = 0.0;
+
+    for(int t = 0; t < TEST_CASES; ++t) {
+        printf("Test case %d\n", t);
+        printf("Input date: ");
+        for(int i = 0; i < GRID_WIDTH; ++i) {
+            printf(" %1.f", inputs[t][i]);
+        }
+        printf("\n");
+
+        printf("Expected output: ");
+        for(int i = 0; i < GRID_WIDTH; ++i) {
+            printf(" %1.f", outputs[t][i]);
+        }
+        printf("\n");
+
+        memset(bestModel->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+        memset(bestModel->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+
+        for(int i = 0; i < STEPS; ++i) {
+            set_inputs_model(bestModel, inputs[t]);
+            albedo_simulate_model_step(bestModel);
+            set_inputs_model(bestModel, inputs[t]);
+        }
+
+        printf("Gotten outputs: ");
+        for(int i = 0; i < GRID_WIDTH; ++i) {   
+            printf(" %1.f", bestModel->state[bestModel->newIndex]->neurons[i + 7*GRID_WIDTH]);
+        }
+        printf("\n");
+
+        float error = calculate_error(bestModel, outputs[t]);
+        totalModelError += error;
+
+        printf("AlbedoModel error %f\n", error);
+
+        export_gradient_layer_to_png(bestModel->weights, "weights.png");
+        export_state_layer_to_png(bestModel->state[bestModel->newIndex], "state.png");
+    }
+
+    totalModelError /= (float) TEST_CASES;
+
+    printf("Total modal error %f\n", totalModelError);
+}
+
 int main() {
     srand(time(0));
-
-    float inputs[TEST_CASES][GRID_WIDTH] = {
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-    };
-
-    float outputs[TEST_CASES][GRID_WIDTH] = {
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-        { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-    };
 
     AlbedoModel* bestModel = NULL;
 
@@ -129,40 +176,44 @@ int main() {
     for(int i = 0; i < SAMPLE_MODELS; ++i)
         models[i] = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
 
-    int i = 0;
-    for(;;++i) {
+    for(int i = 0;;++i) {
         int bestIndex = -1;
         float bestError = FLT_MAX;
 
-        // Run simulations across all models
+        // Run simulations across all models and get best
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
-            AlbedoModel* model = models[m];
-
             float error = 0.0;
 
+            // Simulate each test case and collect error
             for(int t = 0; t < TEST_CASES; ++t) {
-                set_inputs_model(model, inputs[t]);
-                albedo_simulate_model_steps(model, STEPS);
-                set_inputs_model(model, inputs[t]);
+                memset(models[m]->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
+                memset(models[m]->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
 
-                error = calculate_error_delta(models[m], outputs[t]);
+                for(int s = 0; s < STEPS; ++s) {
+                    set_inputs_model(models[m], inputs[t]);
+                    albedo_simulate_model_step(models[m]);
+                    set_inputs_model(models[m], inputs[t]);
+                }
+
+                error += calculate_error(models[m], outputs[t]);
             }
 
-            error /= TEST_CASES;
-
+            error /= (float) (TEST_CASES);
+            
             if(error < bestError) {
                 bestError = error;
                 bestIndex = m;
             }
         }
 
-        if(bestIndex != -1) 
-            bestModel = models[bestIndex];
+        bestModel = models[bestIndex];
 
-        printf("Simulated epoch %d, simulated %d generations, best model error % f\n", i, i*SAMPLE_MODELS, bestError);
+        printf("Simulated epoch %d, error %f, best index %d\n", i, bestError, bestIndex);
 
-        if(bestError <= 0.00001)
+        if(bestError < 0.01) {
+            printf("Best error is %f, stopping training\n", bestError);
             break;
+        }
 
         // Delete all models
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
@@ -181,38 +232,13 @@ int main() {
             memcpy(models[m]->weights->neurons, bestModel->weights->neurons, GRID_WIDTH*GRID_HEIGHT*sizeof(AlbedoNeuronWeight));
 
             AlbedoModel* model = models[m];
-            albedo_tune_weights_layer(model->weights, ALBEDO_EPSILON);
+            albedo_tune_weights_layer(model->weights, 0.25);
         }
 
         albedo_free_model(bestModel);
     }
 
-    // Show case best model
-    for(int t = 0; t < TEST_CASES; ++t) {
-        printf("Test case: ");
-        for(int i = 0; i < GRID_WIDTH; ++i) {
-            printf(" %1.f", inputs[t][i]);
-        }
-        printf("\n");
-
-        printf("AlbedoModel error %f\n", calculate_error(bestModel, outputs[t]));
-
-        memset(bestModel->state[0]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
-        memset(bestModel->state[1]->neurons, 0, GRID_WIDTH*GRID_HEIGHT*sizeof(float));
-
-        for(int i = 0; i < STEPS; ++i) {
-            printf("Step %d/%d", i, STEPS);
-            set_inputs_model(bestModel, inputs[t]);
-            albedo_simulate_model_step(bestModel);
-            set_inputs_model(bestModel, inputs[t]);
-
-            export_gradient_layer_to_png(bestModel->weights, "weights.png");
-            export_state_layer_to_png(bestModel->state[bestModel->newIndex], "state.png");
-
-            int c = getchar();
-        }
-    }
-
+    run_tests_on_model(bestModel);
     albedo_free_model(bestModel);
 
     return 0;
