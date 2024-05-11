@@ -56,8 +56,10 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
     ++frame;
 }
 
-void intermediate_result(AlbedoModel* model, AlbedoNeuronValue** inputs, unsigned int inputCount) {
-    run_show_resulting_image(model, inputs, inputCount);
+void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
+    printf("Simulated epoch %d, error %f\n", snapshot->epoch, snapshot->currentError);
+
+    run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
 }
 
 int main() {
@@ -103,8 +105,7 @@ int main() {
 
     printf("Started training\n");
 
-    /*
-    albedo_finite_difference_training(
+    albedo_finite_difference_training_internal(
         model, 
         inputs, 
         outputs, 
@@ -114,10 +115,11 @@ int main() {
         0.01, 
         STEPS,
         1e-1,
-        1e-1
+        1e-1,
+        &intermediate_result
     );
-    */
 
+    /*
     albedo_genetic_algorithm_training_internal(
         model, 
         inputs, 
@@ -128,6 +130,7 @@ int main() {
         0.01, 
         STEPS,
         &intermediate_result);
+    */
 
     printf("Training done\n");
     

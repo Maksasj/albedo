@@ -51,7 +51,7 @@ void albedo_genetic_algorithm_training_internal(
     unsigned int outputCount,
     float desiredError,
     unsigned int desiredSteps,
-    void (*snapshotCallback)(AlbedoModel*, AlbedoNeuronValue**, unsigned int)
+    AlbedoTrainingSnapshotCallback *snapshotCallback
 ) {
     unsigned int width = model->width;
     unsigned int height = model->height;
@@ -102,11 +102,23 @@ void albedo_genetic_algorithm_training_internal(
             models[m] = NULL;
         }
 
-        printf("Simulated epoch %d, error %f, best index %d\n", e, error, bestIndex);
-
         // Callback
-        if(snapshotCallback != NULL)
-            (*snapshotCallback)(model, inputs, inputCount);
+        if(snapshotCallback != NULL) {
+            AlbedoTrainingSnapshot snapshot;
+
+            snapshot.model = model;
+            snapshot.inputs = inputs;
+            snapshot.outputs = outputs; 
+            snapshot.testCases = testCases;
+            snapshot.inputCount = inputCount;
+            snapshot.outputCount = outputCount;
+            snapshot.desiredError = desiredError;
+            snapshot.desiredSteps = desiredSteps;
+            snapshot.epoch = e;
+            snapshot.currentError = error;
+
+            (*snapshotCallback)(&snapshot);
+        }
 
         if(error < desiredError)
             break;
@@ -135,6 +147,69 @@ void albedo_genetic_algorithm_training(
         NULL);
 }
 
+void albedo_finite_difference_training_internal(
+    AlbedoModel* model,
+    AlbedoNeuronValue** inputs,
+    AlbedoNeuronValue** outputs, 
+    unsigned int testCases,
+    unsigned int inputCount,
+    unsigned int outputCount,
+    float desiredError,
+    unsigned int desiredSteps,
+    float epsilon,
+    float learningRate,
+    AlbedoTrainingSnapshotCallback *snapshotCallback
+) {
+    unsigned int width = model->width;
+    unsigned int height = model->height;
+
+    for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
+        float error = albedo_model_calculate_error_from_tests(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+
+        // Callback
+        if(snapshotCallback != NULL) {
+            AlbedoTrainingSnapshot snapshot;
+
+            snapshot.model = model;
+            snapshot.inputs = inputs;
+            snapshot.outputs = outputs; 
+            snapshot.testCases = testCases;
+            snapshot.inputCount = inputCount;
+            snapshot.outputCount = outputCount;
+            snapshot.desiredError = desiredError;
+            snapshot.desiredSteps = desiredSteps;
+            snapshot.epoch = e;
+            snapshot.currentError = error;
+
+            (*snapshotCallback)(&snapshot);
+        }
+
+        if(error <= desiredError)
+            break;
+
+        AlbedoWeightsLayer* gradient = albedo_copy_weights_layer(model->weights);
+
+        for(int x = 0; x < width; ++x) {
+            for(int y = 0; y < height; ++y) {
+                for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
+                    for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+                        unsigned int index = x + y*width;
+
+                        model->weights->neurons[index].mask[w][h] += epsilon;
+                        float dcost = albedo_model_calculate_error_from_tests(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+                        model->weights->neurons[index].mask[w][h] -= epsilon;
+
+                        gradient->neurons[index].mask[w][h] += learningRate*dcost;
+                    }
+                }
+            }
+        }
+
+        albedo_weights_layer_subtract(model->weights, gradient);
+        albedo_free_weights_layer(gradient);
+    }
+}
+
 void albedo_finite_difference_training(
     AlbedoModel* model,
     AlbedoNeuronValue** inputs,
@@ -147,20 +222,17 @@ void albedo_finite_difference_training(
     float epsilon,
     float learningRate
 ) {
-    /*
-    for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
-        float error = 0.0f;
-
-        for(int t = 0; t < testCases; ++t) {
-            albedo_reset_model_neurons_value(model);
-            error += albedo_model_calculate_error(model, inputs[t], outputs[t], inputCount, outputCount, desiredSteps);
-        }
-
-        error /= (float) (testCases);
-
-        // float dcost = 
-
-        printf("%f\n", error);
-    }
-    */
+    albedo_finite_difference_training_internal(
+        model,
+        inputs,
+        outputs,
+        testCases,
+        inputCount,
+        outputCount,
+        desiredError,
+        desiredSteps,
+        epsilon,
+        learningRate,
+        NULL
+    );
 }   
