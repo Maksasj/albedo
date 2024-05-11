@@ -1,6 +1,6 @@
 #include "albedo_training.h"
 
-void albedo_genetic_algorithm_training(
+void albedo_genetic_algorithm_training_internal(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 
@@ -8,7 +8,8 @@ void albedo_genetic_algorithm_training(
     unsigned int inputCount,
     unsigned int outputCount,
     float desiredError,
-    unsigned int desiredSteps
+    unsigned int desiredSteps,
+    void (*callback)(AlbedoModel*, AlbedoNeuronValue**, unsigned int)
 ) {
     unsigned int width = model->width;
     unsigned int height = model->height;
@@ -63,7 +64,34 @@ void albedo_genetic_algorithm_training(
 
         printf("Simulated epoch %d, error %f, best index %d\n", e, bestError, bestIndex);
 
+        // Callback
+        if(callback != NULL)
+            (*callback)(model, inputs, inputCount);
+
         if(bestError < desiredError)
             break;
     }
+}
+
+
+void albedo_genetic_algorithm_training(
+    AlbedoModel* model, 
+    AlbedoNeuronValue** inputs,
+    AlbedoNeuronValue** outputs, 
+    unsigned int testCases,
+    unsigned int inputCount,
+    unsigned int outputCount,
+    float desiredError,
+    unsigned int desiredSteps
+) {
+    albedo_genetic_algorithm_training_internal(
+        model, 
+        inputs, 
+        outputs, 
+        testCases, 
+        inputCount, 
+        outputCount, 
+        desiredError, 
+        desiredSteps,
+        NULL);
 }
