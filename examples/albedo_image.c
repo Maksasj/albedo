@@ -114,8 +114,8 @@ int main() {
         OUTPUT_COUNT, 
         0.01, 
         STEPS,
-        1e-1,
-        1e-1,
+        1e-3,
+        1e-3,
         &intermediate_result
     );
 

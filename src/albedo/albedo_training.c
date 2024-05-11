@@ -199,7 +199,7 @@ void albedo_finite_difference_training_internal(
                         float dcost = albedo_model_calculate_error_from_tests(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
                         model->weights->neurons[index].mask[w][h] -= epsilon;
 
-                        gradient->neurons[index].mask[w][h] += learningRate*dcost;
+                        gradient->neurons[index].mask[w][h] += learningRate*((dcost - error) / epsilon);
                     }
                 }
             }
