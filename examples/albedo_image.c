@@ -51,6 +51,8 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
     stbi_write_png(fileName, width, height, 4, grid, width*4);
     stbi_write_png("result.png", width, height, 4, grid, width*4);
 
+    free(grid);
+
     ++frame;
 }
 
@@ -62,7 +64,7 @@ int main() {
     srand(time(0));
     
     int width, height, channels;
-    void* bytes = stbi_load("number.png", &width, &height, &channels, 0);
+    void* bytes = stbi_load("examples/number.png", &width, &height, &channels, 0);
 
     printf("%d %d %d\n", width, height, channels);
 
@@ -100,6 +102,21 @@ int main() {
     AlbedoModel* model = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
 
     printf("Started training\n");
+
+    /*
+    albedo_finite_difference_training(
+        model, 
+        inputs, 
+        outputs, 
+        TEST_CASES, 
+        INPUT_COUNT, 
+        OUTPUT_COUNT, 
+        0.01, 
+        STEPS,
+        1e-1,
+        1e-1
+    );
+    */
 
     albedo_genetic_algorithm_training_internal(
         model, 

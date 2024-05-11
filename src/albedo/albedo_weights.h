@@ -34,6 +34,7 @@ AlbedoWeightsLayer* albedo_copy_weights_layer(AlbedoWeightsLayer* src);
 void albedo_free_weights_layer(AlbedoWeightsLayer* weights);
 
 void albedo_weights_layer_add(AlbedoWeightsLayer* target, AlbedoWeightsLayer* another);
+void albedo_weights_layer_subtract(AlbedoWeightsLayer* target, AlbedoWeightsLayer* another);
 void albedo_weights_layer_multiply(AlbedoWeightsLayer* target, AlbedoWeightsLayer* another);
 void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max);
 

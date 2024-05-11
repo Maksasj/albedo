@@ -4,7 +4,6 @@ AlbedoModel* albedo_new_model(unsigned int width, unsigned int height) {
     AlbedoModel* model = (AlbedoModel*) malloc(sizeof(AlbedoModel));
 
     model->weights = albedo_new_weights_layer(width, height);
-
     model->state[0] = albedo_new_neuron_layer(width, height);
     model->state[1] = albedo_new_neuron_layer(width, height);
 
