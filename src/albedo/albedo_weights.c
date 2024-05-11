@@ -35,11 +35,9 @@ AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigne
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-
             for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w)
                 for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h)
                     layer->neurons[x + y*width].mask[w][h] = albedo_randf(min, max);
-            
         }
     }
 

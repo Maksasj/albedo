@@ -41,6 +41,42 @@ void albedo_free_model(AlbedoModel* model) {
     free(model);
 }
 
+void albedo_set_model_neurons_value(AlbedoModel* model, float value) {
+    albedo_set_neuron_layer_value(model->state[0], value);
+    albedo_set_neuron_layer_value(model->state[1], value);
+}
+
+void albedo_reset_model_neurons_value(AlbedoModel* model) {
+    albedo_reset_neuron_layer_value(model->state[0]);
+    albedo_reset_neuron_layer_value(model->state[1]);
+}
+
+void albedo_set_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count) {
+    for(unsigned int i = 0; i < count; ++i) {
+        AlbedoNeuronValue value = values[i];
+
+        unsigned int index = value.x + value.y * model->width;
+
+        model->state[0]->neurons[index] = value.value;
+        model->state[1]->neurons[index] = value.value;
+    }
+}
+
+// Todo improve this
+float albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count) {
+    float dif = 0.0f;
+
+    for(unsigned int i = 0; i < count; ++i) {
+        AlbedoNeuronValue value = values[i];
+
+        unsigned int index = value.x + value.y * model->width;
+
+        dif += fabs(model->state[model->newIndex]->neurons[index] - value.value);
+    }
+
+    return dif;
+}
+
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights) {
     unsigned int width = newState->width;
     unsigned int height = newState->height;

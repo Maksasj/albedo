@@ -112,6 +112,22 @@ void run_tests_on_model(AlbedoModel* bestModel, float** inputs, float** outputs,
 int main() {
     srand(time(0));
 
+    {
+        AlbedoNeuronValue inputs[4][2] = {
+            {{0, 0, 0.0f}, {0, 1, 0.0f}},
+            {{0, 0, 1.0f}, {0, 1, 0.0f}},
+            {{0, 0, 0.0f}, {0, 1, 1.0f}},
+            {{0, 0, 1.0f}, {0, 1, 1.0f}}
+        };
+
+        AlbedoNeuronValue outputs[4][1] = {
+            {{3, 0, 0.0f}},
+            {{3, 0, 0.0f}},
+            {{3, 0, 0.0f}},
+            {{3, 0, 1.0f}}
+        };
+    }
+    
     int width, height, channels;
     void* bytes = stbi_load("number.png", &width, &height, &channels, 0);
 
@@ -215,7 +231,7 @@ int main() {
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             models[m] = albedo_copy_model(bestModel);
 
-            AlbedoNeuronWeight* step = albedo_new_weights_layer_clamped(models[m]->width, models[m]->height, -bestError, bestError);
+            AlbedoWeightsLayer* step = albedo_new_weights_layer_clamped(models[m]->width, models[m]->height, -bestError, bestError);
             albedo_weights_layer_add(models[m]->weights, step);
             albedo_free_weights_layer(step);
         }

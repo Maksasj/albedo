@@ -21,6 +21,12 @@ typedef struct AlbedoWeightsLayer {
     AlbedoNeuronWeight* neurons;
 } AlbedoWeightsLayer;
 
+typedef struct AlbedoNeuronValue { 
+    unsigned int x; 
+    unsigned int y; 
+    float value;
+} AlbedoNeuronValue;
+
 AlbedoWeightsLayer* albedo_new_weights_layer(unsigned int width, unsigned int height);
 AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigned int height, float min, float max);
 AlbedoWeightsLayer* albedo_copy_weights_layer(AlbedoWeightsLayer* src);

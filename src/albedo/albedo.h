@@ -7,4 +7,8 @@
 #include "albedo_weights.h"
 #include "albedo_model.h"
 
+#include "albedo_training.h"
+
+#include "albedo_testing.h"
+
 #endif

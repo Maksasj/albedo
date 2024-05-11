@@ -24,6 +24,12 @@ AlbedoModel* albedo_new_model(unsigned int width, unsigned int height);
 AlbedoModel* albedo_copy_model(AlbedoModel* src);
 void albedo_free_model(AlbedoModel* model);
 
+void albedo_set_model_neurons_value(AlbedoModel* model, float value);
+void albedo_reset_model_neurons_value(AlbedoModel* model);
+
+void albedo_set_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count);
+float albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count);
+
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights);
 
 void albedo_simulate_model_step(AlbedoModel* model);

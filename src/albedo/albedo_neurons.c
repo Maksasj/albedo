@@ -28,6 +28,18 @@ AlbedoNeuronLayer* albedo_copy_neuron_layer(AlbedoNeuronLayer* src) {
     return layer;  
 }
 
+void albedo_set_neuron_layer_value(AlbedoNeuronLayer* layer, float value) {
+    unsigned int size = layer->width * layer->height;
+
+    for(int i = 0; i < size; ++i)
+        layer->neurons[i] = value;
+}
+
+void albedo_reset_neuron_layer_value(AlbedoNeuronLayer* layer) {
+    unsigned int size = layer->width * layer->height * sizeof(float);
+    memset(layer->neurons, 0, size);
+}
+
 void albedo_free_neuron_layer(AlbedoNeuronLayer* state) {
     free(state->neurons);
     free(state);   
