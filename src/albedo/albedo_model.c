@@ -16,6 +16,21 @@ AlbedoModel* albedo_new_model(unsigned int width, unsigned int height) {
 
     return model;
 }
+AlbedoModel* albedo_copy_model(AlbedoModel* src) {
+    AlbedoModel* model = (AlbedoModel*) malloc(sizeof(AlbedoModel));
+
+    model->weights = albedo_copy_weights_layer(src->weights);
+    model->state[0] = albedo_copy_neuron_layer(src->state[0]);
+    model->state[1] = albedo_copy_neuron_layer(src->state[1]);
+
+    model->iteration = src->iteration;
+    model->newIndex = src->newIndex;
+
+    model->width = src->width;
+    model->height = src->height;
+
+    return model;
+}
 
 void albedo_free_model(AlbedoModel* model) {
     albedo_free_weights_layer(model->weights);

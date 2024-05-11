@@ -213,11 +213,11 @@ int main() {
 
         // Populate best model
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
-            models[m] = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
-            memcpy(models[m]->weights->neurons, bestModel->weights->neurons, GRID_WIDTH*GRID_HEIGHT*sizeof(AlbedoNeuronWeight));
+            models[m] = albedo_copy_model(bestModel);
 
-            AlbedoModel* model = models[m];
-            albedo_tune_weights_layer(model->weights, bestError);
+            AlbedoNeuronWeight* step = albedo_new_weights_layer_clamped(models[m]->width, models[m]->height, -bestError, bestError);
+            albedo_weights_layer_add(models[m]->weights, step);
+            albedo_free_weights_layer(step);
         }
 
         // albedo_free_model(bestModel);

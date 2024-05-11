@@ -21,6 +21,7 @@ typedef struct AlbedoModel {
 } AlbedoModel;
 
 AlbedoModel* albedo_new_model(unsigned int width, unsigned int height);
+AlbedoModel* albedo_copy_model(AlbedoModel* src);
 void albedo_free_model(AlbedoModel* model);
 
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights);

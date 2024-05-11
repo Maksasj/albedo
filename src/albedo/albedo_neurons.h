@@ -12,6 +12,7 @@ typedef struct AlbedoNeuronLayer {
 } AlbedoNeuronLayer;
 
 AlbedoNeuronLayer* albedo_new_neuron_layer(unsigned int width, unsigned int height);
+AlbedoNeuronLayer* albedo_copy_neuron_layer(AlbedoNeuronLayer* src);
 
 void albedo_free_neuron_layer(AlbedoNeuronLayer* state);
 

@@ -22,7 +22,15 @@ typedef struct AlbedoWeightsLayer {
 } AlbedoWeightsLayer;
 
 AlbedoWeightsLayer* albedo_new_weights_layer(unsigned int width, unsigned int height);
-void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error);
+AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigned int height, float min, float max);
+AlbedoWeightsLayer* albedo_copy_weights_layer(AlbedoWeightsLayer* src);
+
 void albedo_free_weights_layer(AlbedoWeightsLayer* weights);
+
+void albedo_weights_layer_add(AlbedoWeightsLayer* target, AlbedoWeightsLayer* another);
+void albedo_weights_layer_multiply(AlbedoWeightsLayer* target, AlbedoWeightsLayer* another);
+void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max);
+
+void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error);
 
 #endif

@@ -14,6 +14,20 @@ AlbedoNeuronLayer* albedo_new_neuron_layer(unsigned int width, unsigned int heig
     return layer;
 }
 
+AlbedoNeuronLayer* albedo_copy_neuron_layer(AlbedoNeuronLayer* src) {
+    AlbedoNeuronLayer* layer = (AlbedoNeuronLayer*) malloc(sizeof(AlbedoNeuronLayer));
+
+    layer->width = src->width;
+    layer->height = src->height;
+
+    unsigned int size = layer->width * layer->height * sizeof(float);
+
+    layer->neurons = (float*) malloc(size);
+    memcpy(layer->neurons, src->neurons, size);
+
+    return layer;  
+}
+
 void albedo_free_neuron_layer(AlbedoNeuronLayer* state) {
     free(state->neurons);
     free(state);   
