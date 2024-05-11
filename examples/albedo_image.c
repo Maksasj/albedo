@@ -10,7 +10,7 @@
 #define GRID_WIDTH 8
 #define GRID_HEIGHT 8
 #define STEPS 50
-#define INPUT_COUNT 3
+#define INPUT_COUNT 2
 #define OUTPUT_COUNT 1
 
 void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, unsigned int inputCount) {
@@ -25,7 +25,7 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
             albedo_reset_model_neurons_value(model);
 
             for(int s = 0; s < STEPS; ++s) {
-                albedo_set_model_neurons_values(model, inputs[x + y*8], inputCount); // 8 is a image width
+                albedo_set_model_neurons_values(model, inputs[x + y*width], inputCount);
                 albedo_simulate_model_step(model);
             }
 
