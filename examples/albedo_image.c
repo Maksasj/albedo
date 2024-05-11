@@ -108,7 +108,7 @@ int main() {
         TEST_CASES, 
         INPUT_COUNT, 
         OUTPUT_COUNT, 
-        0.004, 
+        0.01, 
         STEPS,
         &intermediate_result);
 

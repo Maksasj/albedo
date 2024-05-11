@@ -15,7 +15,7 @@ void albedo_genetic_algorithm_training_internal(
     unsigned int outputCount,
     float desiredError,
     unsigned int desiredSteps,
-    void (*callback)(AlbedoModel*, AlbedoNeuronValue**, unsigned int)
+    void (*snapshotCallback)(AlbedoModel*, AlbedoNeuronValue**, unsigned int)
 );
 
 void albedo_genetic_algorithm_training(
