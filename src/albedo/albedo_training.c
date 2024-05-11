@@ -163,6 +163,8 @@ void albedo_finite_difference_training_internal(
     unsigned int width = model->width;
     unsigned int height = model->height;
 
+    AlbedoWeightsLayer* gradient = albedo_new_weights_layer(width, height);
+
     for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
         float error = albedo_model_calculate_error_from_tests(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
 
@@ -187,7 +189,8 @@ void albedo_finite_difference_training_internal(
         if(error <= desiredError)
             break;
 
-        AlbedoWeightsLayer* gradient = albedo_copy_weights_layer(model->weights);
+        // Error probably should be calculated also including step count
+        // Since changing weights also may change result in worst wat
 
         for(int x = 0; x < width; ++x) {
             for(int y = 0; y < height; ++y) {
@@ -199,15 +202,16 @@ void albedo_finite_difference_training_internal(
                         float dcost = albedo_model_calculate_error_from_tests(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
                         model->weights->neurons[index].mask[w][h] -= epsilon;
 
-                        gradient->neurons[index].mask[w][h] += learningRate*((dcost - error) / epsilon);
+                        gradient->neurons[index].mask[w][h] = learningRate*((dcost - error) / epsilon);
                     }
                 }
             }
         }
 
         albedo_weights_layer_subtract(model->weights, gradient);
-        albedo_free_weights_layer(gradient);
     }
+
+    albedo_free_weights_layer(gradient);
 }
 
 void albedo_finite_difference_training(
