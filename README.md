@@ -1,15 +1,20 @@
-# Albedo
+<h1 align="center" id="title">albedo</h1>
 
-<img align="left" src="https://github.com/Maksasj/albedo/blob/master/logo.gif" width="192px">
+<p align="center"><img src="https://github.com/Maksasj/albedo/blob/master/logo.gif" alt="project-image"></p>
 
-albedo - neural cellular automata model
+Nowadays there are many models and architectures of neural networks. But more or less they are all based on very similar principles, such as layers of neurons, weights, bias, etc. But what if we try to rethink neural networks into something more organic? What if we combine neural networks and cellular automata?
+
+Most of the cellular machines have very simple rules, such as [Game Of Live](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life), [Rule 110](https://en.wikipedia.org/wiki/Rule_110) have no more than 4 rules. Despite the small number of rules, very complex behavior emerges in such systems.
+
+Albedo is a cellular automaton (similar to [Game Of Live](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)) in which each cell is a separate neuron with 9 connections to neighboring neurons (including itself).
 
 > albedo is not a new javascript framework btw !
 
-<br>
-<br>
-<br>
-<br>
+## Table of Contents
+- Lore
+- Building
+- Example
+- License
 
 ## Building
 ```bash
