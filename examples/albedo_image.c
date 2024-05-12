@@ -42,14 +42,21 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
         }
     }
 
-    export_gradient_layer_to_png(model->weights, "weights.png");
-
     static int frame = 0;
 
-    char fileName[50] = { '\0' };  
-    sprintf(fileName, "result/frame_%d.png", frame);
-    stbi_write_png(fileName, width, height, 4, grid, width*4);
-    stbi_write_png("result.png", width, height, 4, grid, width*4);
+    {
+        char fileName[50] = { '\0' };  
+        sprintf(fileName, "result/result/result_%d.png", frame);
+        stbi_write_png(fileName, width, height, 4, grid, width*4);
+        stbi_write_png("result.png", width, height, 4, grid, width*4);
+    }
+    
+    {
+        char fileName[50] = { '\0' };  
+        sprintf(fileName, "result/result/result_%d.png", frame);
+        export_gradient_layer_to_png(model->weights, fileName);
+        export_gradient_layer_to_png(model->weights, "weights.png");
+    }
 
     free(grid);
 
@@ -114,8 +121,8 @@ int main() {
         OUTPUT_COUNT, 
         0.01, 
         STEPS,
-        0.05,
-        0.05,
+        1e-1,
+        1e-1,
         &albedo_calculate_continuous_result_cost,
         &intermediate_result
     );

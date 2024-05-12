@@ -23,11 +23,11 @@ void albedo_genetic_algorithm_training_internal(
         int bestIndex = -1;
 
         // Populate models
-        for(int i = 0; i < SAMPLE_MODELS; ++i) {
-            models[i] = albedo_copy_model(model);
+        for(int m = 0; m < SAMPLE_MODELS; ++m) {
+            models[m] = albedo_copy_model(model);
 
             AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, -epsilon, epsilon);
-            albedo_weights_layer_add(models[i]->weights, dif);
+            albedo_weights_layer_add(models[m]->weights, dif);
             albedo_free_weights_layer(dif);
         }
 
@@ -151,22 +151,20 @@ void albedo_finite_difference_training_internal(
                         unsigned int index = x + y*width;
 
                         float saved = model->weights->neurons[index].mask[w][h];
-                        model->weights->neurons[index].mask[w][h] += albedo_clampf(model->weights->neurons[index].mask[w][h], -1.0f, 1.0f);
+                        model->weights->neurons[index].mask[w][h] += epsilon;
 
                         float eCost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
                         float dcost = (eCost - cost) / epsilon;
 
                         model->weights->neurons[index].mask[w][h] = saved;
 
-                        // Testing
-                        model->weights->neurons[index].mask[w][h] += learningRate*dcost;
+                        gradient->neurons[index].mask[w][h] = learningRate*dcost;
                     }
                 }
             }
         }
 
         albedo_weights_layer_subtract(model->weights, gradient);
-        albedo_weights_layer_clamp(model->weights, -1.0f, 1.0f);
     }
 
     albedo_free_weights_layer(gradient);
