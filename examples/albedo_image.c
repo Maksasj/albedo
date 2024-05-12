@@ -9,7 +9,7 @@
 
 #define GRID_WIDTH 8
 #define GRID_HEIGHT 8
-#define STEPS 50
+#define STEPS 25
 #define INPUT_COUNT 2
 #define OUTPUT_COUNT 1
 
@@ -90,8 +90,8 @@ int main() {
             inputs[x + y*width][0].y = 0;
 
             inputs[x + y*width][1].value = (float) y / (float) height; 
-            inputs[x + y*width][1].x = 0;
-            inputs[x + y*width][1].y = 7;
+            inputs[x + y*width][1].x = 7;
+            inputs[x + y*width][1].y = 0;
 
             outputs[x + y*width][0].value = value;
             outputs[x + y*width][0].x = 0;
@@ -114,24 +114,11 @@ int main() {
         OUTPUT_COUNT, 
         0.01, 
         STEPS,
-        1e-3,
-        1e-3,
+        0.05,
+        0.05,
         &albedo_calculate_continuous_result_cost,
         &intermediate_result
     );
-
-    /*
-    albedo_genetic_algorithm_training_internal(
-        model, 
-        inputs, 
-        outputs, 
-        TEST_CASES, 
-        INPUT_COUNT, 
-        OUTPUT_COUNT, 
-        0.01, 
-        STEPS,
-        &intermediate_result);
-    */
 
     printf("Training done\n");
     

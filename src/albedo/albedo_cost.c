@@ -44,7 +44,6 @@ float albedo_calculate_continuous_result_cost(
             albedo_simulate_model_step(model);
             cost += albedo_get_dif_model_neurons_values(model, outputs[t], outputCount);
         }
-
     }
 
     return cost;
