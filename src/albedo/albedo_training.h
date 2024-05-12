@@ -1,10 +1,13 @@
 #ifndef ALBEDO_TRAINING_H
 #define ALBEDO_TRAINING_H
 
+#include "albedo_cost.h"
 #include "albedo_model.h"
 
 #define SAMPLE_MODELS 100
 #define ALBEDO_MAX_EPOCHS 10000
+
+// Todo add some cost functions
 
 typedef struct AlbedoTrainingSnapshot {
     // Common values
@@ -14,33 +17,14 @@ typedef struct AlbedoTrainingSnapshot {
     unsigned int testCases;
     unsigned int inputCount;
     unsigned int outputCount;
-    float desiredError;
+    float desiredCost;
     unsigned int desiredSteps;
 
     unsigned int epoch;
-    float currentError;
+    float currentCost;
 } AlbedoTrainingSnapshot;
 
 typedef void (AlbedoTrainingSnapshotCallback)(AlbedoTrainingSnapshot*);
-
-float albedo_model_calculate_error(
-    AlbedoModel* model,
-    AlbedoNeuronValue* inputs,
-    AlbedoNeuronValue* outputs, 
-    unsigned int inputCount,
-    unsigned int outputCount,
-    unsigned int steps
-);
-
-float albedo_model_calculate_error_from_tests(
-    AlbedoModel* model,
-    AlbedoNeuronValue** inputs,
-    AlbedoNeuronValue** outputs, 
-    unsigned int testCases,
-    unsigned int inputCount,
-    unsigned int outputCount,
-    unsigned int steps
-);
 
 void albedo_genetic_algorithm_training_internal(
     AlbedoModel* model, 
@@ -49,9 +33,11 @@ void albedo_genetic_algorithm_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredError,
+    float epsilon,
+    float desiredCost,
     unsigned int desiredSteps,
-    AlbedoTrainingSnapshotCallback *snapshotCallback
+    AlbedoCostFunction* costFunction,
+    AlbedoTrainingSnapshotCallback* snapshotCallback
 );
 
 void albedo_genetic_algorithm_training(
@@ -61,8 +47,10 @@ void albedo_genetic_algorithm_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredError,
-    unsigned int desiredSteps
+    float epsilon,
+    float desiredCost,
+    unsigned int desiredSteps,
+    AlbedoCostFunction* costFunction
 );
 
 void albedo_finite_difference_training_internal(
@@ -72,10 +60,11 @@ void albedo_finite_difference_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredError,
+    float desiredCost,
     unsigned int desiredSteps,
     float epsilon,
     float learningRate,
+    AlbedoCostFunction* costFunction,
     AlbedoTrainingSnapshotCallback *snapshotCallback
 );
 
@@ -86,10 +75,11 @@ void albedo_finite_difference_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredError,
+    float desiredCost,
     unsigned int desiredSteps,
     float epsilon,
-    float learningRate
+    float learningRate,
+    AlbedoCostFunction* costFunction
 ); 
 
 #endif

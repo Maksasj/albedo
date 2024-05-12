@@ -43,7 +43,7 @@ int main() {
     AlbedoModel* model = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
 
     printf("Started training\n");
-    albedo_genetic_algorithm_training(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, 0.004, STEPS);
+    albedo_genetic_algorithm_training(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, 0.05, 0.004, STEPS, &albedo_calculate_fixed_step_result_cost);
     printf("Training done\n");
     
     albedo_sumup_testing(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, STEPS);

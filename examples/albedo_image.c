@@ -57,7 +57,7 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
 }
 
 void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
-    printf("Simulated epoch %d, error %f\n", snapshot->epoch, snapshot->currentError);
+    printf("Simulated epoch %d, error %f\n", snapshot->epoch, snapshot->currentCost);
 
     run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
 }
@@ -116,6 +116,7 @@ int main() {
         STEPS,
         1e-3,
         1e-3,
+        &albedo_calculate_fixed_step_result_cost,
         &intermediate_result
     );
 
