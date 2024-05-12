@@ -151,14 +151,15 @@ void albedo_finite_difference_training_internal(
                         unsigned int index = x + y*width;
 
                         float saved = model->weights->neurons[index].mask[w][h];
-                        model->weights->neurons[index].mask[w][h] += epsilon;
-                        
+                        model->weights->neurons[index].mask[w][h] += albedo_clampf(model->weights->neurons[index].mask[w][h], -1.0f, 1.0f);
+
                         float eCost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
                         float dcost = (eCost - cost) / epsilon;
 
                         model->weights->neurons[index].mask[w][h] = saved;
 
-                        gradient->neurons[index].mask[w][h] = learningRate*dcost;
+                        // Testing
+                        model->weights->neurons[index].mask[w][h] += learningRate*dcost;
                     }
                 }
             }
