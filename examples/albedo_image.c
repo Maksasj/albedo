@@ -29,7 +29,7 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
                 albedo_simulate_model_step(model);
             }
 
-            float value = model->state[model->newIndex]->neurons[0 + 7*model->width];
+            float value = kiwi_fixed_to_float(model->state[model->newIndex]->neurons[0 + 7*model->width]);
 
             HSL hsl;
             hsl.H = (1.0 - value) * 240;
@@ -66,7 +66,7 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
 void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
     printf("Simulated epoch %d, cost %f\n", snapshot->epoch, kiwi_fixed_to_float(snapshot->currentCost));
 
-    // run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
+    run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
 }
 
 int main() {
