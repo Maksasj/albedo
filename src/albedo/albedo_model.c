@@ -62,130 +62,150 @@ void albedo_set_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* valu
 }
 
 // Todo improve this
-float albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count) {
-    float dif = 0.0f;
+kiwi_fixed_t albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count) {
+    kiwi_fixed_t dif = 0.0f;
 
     for(unsigned int i = 0; i < count; ++i) {
         AlbedoNeuronValue value = values[i];
 
         unsigned int index = value.x + value.y * model->width;
 
-        dif += fabs(model->state[model->newIndex]->neurons[index] - value.value);
+        dif += kiwi_abs(model->state[model->newIndex]->neurons[index] - value.value);
     }
 
     return dif;
 }
 
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights) {
-    unsigned int width = newState->width;
-    unsigned int height = newState->height;
+    const unsigned int width = newState->width;
+    const unsigned int height = newState->height;
 
-    unsigned int widthM = width - 1;
-    unsigned int heightM = height - 1;
+    const unsigned int widthM = width - 1;
+    const unsigned int heightM = height - 1;
+
+    const kiwi_fixed_t fzero = kiwi_float_to_fixed(0.0f);
+    const kiwi_fixed_t fone = kiwi_float_to_fixed(1.0f);
 
     // Corners
     {   // Top left
-        float value = oldState->neurons[0]              * weights->weights[0].kernel[1][1];
-        value += oldState->neurons[1]                   * weights->weights[0].kernel[2][1];
-        value += oldState->neurons[width]                   * weights->weights[0].kernel[1][0];
-        value += oldState->neurons[1 + width]                   * weights->weights[0].kernel[2][0];
-        newState->neurons[0] = albedo_clampf(value, 0.0, 1.0);
+        const AlbedoNeuronKernel kl = weights->weights[0];
+
+        kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[0], kl.kernel[1][1]);
+        value += kiwi_fixed_mul(oldState->neurons[1], kl.kernel[2][1]);
+        value += kiwi_fixed_mul(oldState->neurons[width], kl.kernel[1][0]);
+        value += kiwi_fixed_mul(oldState->neurons[1 + width], kl.kernel[2][0]);
+        newState->neurons[0] = albedo_clamp_fixed(value, fzero, fone);
     }
 
     {   // Top right
-        float value = oldState->neurons[widthM]         * weights->weights[widthM].kernel[1][1];
-        value += oldState->neurons[widthM - 1]              * weights->weights[widthM].kernel[0][1];
-        value += oldState->neurons[widthM + width]              * weights->weights[widthM].kernel[1][0];
-        value += oldState->neurons[widthM - 1 + width]              * weights->weights[widthM].kernel[0][0];
-        newState->neurons[widthM] = albedo_clampf(value, 0.0, 1.0);
+        const AlbedoNeuronKernel kl = weights->weights[widthM];
+
+        kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[widthM], kl.kernel[1][1]);
+        value += kiwi_fixed_mul(oldState->neurons[widthM - 1], kl.kernel[0][1]);
+        value += kiwi_fixed_mul(oldState->neurons[widthM + width], kl.kernel[1][0]);
+        value += kiwi_fixed_mul(oldState->neurons[widthM - 1 + width], kl.kernel[0][0]);
+        newState->neurons[widthM] = albedo_clamp_fixed(value, fzero, fone);
     }
 
     {   // Bottom left
-        unsigned int index = heightM * width;
-        float value = oldState->neurons[index]          * weights->weights[index].kernel[1][1];
-        value += oldState->neurons[index - width]               * weights->weights[index].kernel[1][2];
-        value += oldState->neurons[index + 1]               * weights->weights[index].kernel[2][1];
-        value += oldState->neurons[index - width + 1]               * weights->weights[index].kernel[2][2];
-        newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+        const unsigned int index = heightM * width;
+        const AlbedoNeuronKernel kl = weights->weights[index];
+
+        kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[index], kl.kernel[1][1]);
+        value += kiwi_fixed_mul(oldState->neurons[index - width], kl.kernel[1][2]);
+        value += kiwi_fixed_mul(oldState->neurons[index + 1], kl.kernel[2][1]);
+        value += kiwi_fixed_mul(oldState->neurons[index - width + 1], kl.kernel[2][2]);
+        newState->neurons[index] = albedo_clamp_fixed(value, fzero, fone);
     }
 
     {   // Bottom right
-        unsigned int index = widthM + heightM * width;
-        float value = oldState->neurons[index]          * weights->weights[index].kernel[1][1];
-        value += oldState->neurons[index - 1]               * weights->weights[index].kernel[1][0];
-        value += oldState->neurons[index - width]               * weights->weights[index].kernel[2][1];
-        value += oldState->neurons[index - 1 - width]               * weights->weights[index].kernel[2][0];
-        newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+        const unsigned int index = widthM + heightM * width;
+        const AlbedoNeuronKernel kl = weights->weights[index];
+
+        kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[index], kl.kernel[1][1]);
+        value += kiwi_fixed_mul(oldState->neurons[index - 1], kl.kernel[1][0]);
+        value += kiwi_fixed_mul(oldState->neurons[index - width], kl.kernel[2][1]);
+        value += kiwi_fixed_mul(oldState->neurons[index - 1 - width], kl.kernel[2][0]);
+        newState->neurons[index] = albedo_clamp_fixed(value, fzero, fone);
     }
 
     // Borders
     // along x axis
     for(int x = 1; x < widthM; ++x) {
         {
-            float value = oldState->neurons[x]  * weights->weights[x].kernel[1][1];
-            value += oldState->neurons[x - 1]       * weights->weights[x].kernel[0][1];
-            value += oldState->neurons[x + 1]       * weights->weights[x].kernel[2][1];
-            value += oldState->neurons[x + width - 1]       * weights->weights[x].kernel[0][0];
-            value += oldState->neurons[x + width]       * weights->weights[x].kernel[1][0];
-            value += oldState->neurons[x + width + 1]       * weights->weights[x].kernel[2][0];
-            newState->neurons[x] = albedo_clampf(value, 0.0, 1.0);
+            const AlbedoNeuronKernel kl = weights->weights[x];
+
+            kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[x], kl.kernel[1][1]);
+            value += kiwi_fixed_mul(oldState->neurons[x - 1], kl.kernel[0][1]);
+            value += kiwi_fixed_mul(oldState->neurons[x + 1], kl.kernel[2][1]);
+            value += kiwi_fixed_mul(oldState->neurons[x + width - 1], kl.kernel[0][0]);
+            value += kiwi_fixed_mul(oldState->neurons[x + width], kl.kernel[1][0]);
+            value += kiwi_fixed_mul(oldState->neurons[x + width + 1], kl.kernel[2][0]);
+            newState->neurons[x] = albedo_clamp_fixed(value, fzero, fone);
         }
 
         {
-            unsigned int index = x + heightM * width;
-            float value = oldState->neurons[index]  * weights->weights[index].kernel[1][1];
-            value += oldState->neurons[index - 1]       * weights->weights[index].kernel[0][1];
-            value += oldState->neurons[index + 1]       * weights->weights[index].kernel[2][1];
-            value += oldState->neurons[index - width -1]       * weights->weights[index].kernel[0][2];
-            value += oldState->neurons[index - width]       * weights->weights[index].kernel[1][2];
-            value += oldState->neurons[index - width + 1]       * weights->weights[index].kernel[2][2];
-            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+            const unsigned int index = x + heightM * width;
+            const AlbedoNeuronKernel kl = weights->weights[index];
+
+            kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[index], kl.kernel[1][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index - 1], kl.kernel[0][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index + 1], kl.kernel[2][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width -1], kl.kernel[0][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width], kl.kernel[1][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width + 1], kl.kernel[2][2]);
+            newState->neurons[index] = albedo_clamp_fixed(value, fzero, fone);
         }
     }
 
     // along y axis
     for(int y = 1; y < widthM; ++y) {
         {
-            unsigned int index = y * width;
-            float value = oldState->neurons[index]  * weights->weights[index].kernel[1][1];
-            value += oldState->neurons[index - width]       * weights->weights[index].kernel[1][2];
-            value += oldState->neurons[index + width]       * weights->weights[index].kernel[1][0];
-            value += oldState->neurons[index - width + 1]       * weights->weights[index].kernel[2][2];
-            value += oldState->neurons[index + 1]       * weights->weights[index].kernel[2][1];
-            value += oldState->neurons[index + width + 1]       * weights->weights[index].kernel[2][0];
-            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+            const unsigned int index = y * width;
+            const AlbedoNeuronKernel kl = weights->weights[index];
+
+            kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[index], kl.kernel[1][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width], kl.kernel[1][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index + width], kl.kernel[1][0]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width + 1], kl.kernel[2][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index + 1], kl.kernel[2][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index + width + 1], kl.kernel[2][0]);
+            newState->neurons[index] = albedo_clamp_fixed(value, fzero, fone);
         }
 
         {
-            unsigned int index = widthM + y * width;
-            float value = oldState->neurons[index]  * weights->weights[index].kernel[1][1];
-            value += oldState->neurons[index - width]       * weights->weights[index].kernel[1][2];
-            value += oldState->neurons[index + width]       * weights->weights[index].kernel[1][0];
-            value += oldState->neurons[index - width - 1]       * weights->weights[index].kernel[0][2];
-            value += oldState->neurons[index - 1]       * weights->weights[index].kernel[0][1];
-            value += oldState->neurons[index + width - 1]       * weights->weights[index].kernel[0][0];
-            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+            const unsigned int index = widthM + y * width;
+            const AlbedoNeuronKernel kl = weights->weights[index];
+
+            kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[index], kl.kernel[1][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width], kl.kernel[1][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index + width], kl.kernel[1][0]);
+            value += kiwi_fixed_mul(oldState->neurons[index - width - 1], kl.kernel[0][2]);
+            value += kiwi_fixed_mul(oldState->neurons[index - 1], kl.kernel[0][1]);
+            value += kiwi_fixed_mul(oldState->neurons[index + width - 1], kl.kernel[0][0]);
+            newState->neurons[index] = albedo_clamp_fixed(value, fzero, fone);
         }
     }
 
     // Center square
     for(int x = 1; x < widthM; ++x) {
         for(int y = 1; y < heightM; ++y) {
-            unsigned int index = x + y*width;
+            const unsigned int index = x + y*width;
+            const AlbedoNeuronKernel kl = weights->weights[index];
 
-            float value = oldState->neurons[(x - 1)  + (y + 1)*width]   * weights->weights[index].kernel[0][2];
-            value += oldState->neurons[(x)      + (y + 1)*width]        * weights->weights[index].kernel[1][2];
-            value += oldState->neurons[(x + 1)  + (y + 1)*width]        * weights->weights[index].kernel[2][2];
+            kiwi_fixed_t value = kiwi_fixed_mul(oldState->neurons[(x - 1)  + (y + 1)*width], kl.kernel[0][2]);
+            value += kiwi_fixed_mul(oldState->neurons[(x)      + (y + 1)*width], kl.kernel[1][2]);
+            value += kiwi_fixed_mul(oldState->neurons[(x + 1)  + (y + 1)*width], kl.kernel[2][2]);
 
-            value += oldState->neurons[(x - 1)  + (y)*width]            * weights->weights[index].kernel[0][1];
-            value += oldState->neurons[(x)      + (y)*width]            * weights->weights[index].kernel[1][1];
-            value += oldState->neurons[(x + 1)  + (y)*width]            * weights->weights[index].kernel[2][1];
+            value += kiwi_fixed_mul(oldState->neurons[(x - 1)  + (y)*width], kl.kernel[0][1]);
+            value += kiwi_fixed_mul(oldState->neurons[(x)      + (y)*width], kl.kernel[1][1]);
+            value += kiwi_fixed_mul(oldState->neurons[(x + 1)  + (y)*width], kl.kernel[2][1]);
 
-            value += oldState->neurons[(x - 1)  + (y - 1)*width]        * weights->weights[index].kernel[0][0];
-            value += oldState->neurons[(x)      + (y - 1)*width]        * weights->weights[index].kernel[1][0];
-            value += oldState->neurons[(x + 1)  + (y - 1)*width]        * weights->weights[index].kernel[2][0];
+            value += kiwi_fixed_mul(oldState->neurons[(x - 1)  + (y - 1)*width], kl.kernel[0][0]);
+            value += kiwi_fixed_mul(oldState->neurons[(x)      + (y - 1)*width], kl.kernel[1][0]);
+            value += kiwi_fixed_mul(oldState->neurons[(x + 1)  + (y - 1)*width], kl.kernel[2][0]);
 
-            newState->neurons[x + y*width] = albedo_clampf(value, 0.0, 1.0);
+            newState->neurons[x + y*width] = albedo_clamp_fixed(value, fzero, fone);
         }
     }
 }
@@ -204,25 +224,3 @@ void albedo_simulate_model_steps(AlbedoModel* model, unsigned int steps) {
     for(int i = 0; i < steps; ++i) 
         albedo_simulate_model_step(model);
 }
-
-// =========================================================
-void set_inputs_model(AlbedoModel* model, float input[]) {
-    for(int i = 0; i < model->width; ++i) {
-        model->state[0]->neurons[i] = input[i];
-        model->state[1]->neurons[i] = input[i];
-    }
-}
-
-float calculate_error_delta(AlbedoModel* model, float expectedOutput[]) {
-    float error = 0.0;
-
-    for(int i = 0; i < model->width; ++i)
-        error += fabs(model->state[model->newIndex]->neurons[i + (model->height-1)*model->width] - expectedOutput[i]);
-
-    return error;
-}
-
-float calculate_error(AlbedoModel* model, float expectedOutput[]) {
-    return calculate_error_delta(model, expectedOutput) / (float) model->width;
-}
-// =========================================================

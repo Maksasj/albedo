@@ -1,6 +1,6 @@
 #include "albedo.h"
 
-float albedo_calculate_fixed_step_result_cost(
+kiwi_fixed_t albedo_calculate_fixed_step_result_cost(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 
@@ -9,7 +9,7 @@ float albedo_calculate_fixed_step_result_cost(
     unsigned int outputCount,
     unsigned int desiredStep
 ) {
-    float cost = 0.0f;
+    kiwi_fixed_t cost = 0;
 
     for(int t = 0; t < testCases; ++t) {
         albedo_reset_model_neurons_value(model);
@@ -25,7 +25,7 @@ float albedo_calculate_fixed_step_result_cost(
     return cost;
 }
 
-float albedo_calculate_continuous_result_cost(
+kiwi_fixed_t albedo_calculate_continuous_result_cost(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 
@@ -34,7 +34,7 @@ float albedo_calculate_continuous_result_cost(
     unsigned int outputCount,
     unsigned int maxStep
 ) {
-    float cost = 0.0f;
+    kiwi_fixed_t cost = 0;
 
     for(int t = 0; t < testCases; ++t) {
         albedo_reset_model_neurons_value(model);

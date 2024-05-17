@@ -17,11 +17,11 @@ typedef struct AlbedoTrainingSnapshot {
     unsigned int testCases;
     unsigned int inputCount;
     unsigned int outputCount;
-    float desiredCost;
+    kiwi_fixed_t desiredCost;
     unsigned int desiredSteps;
 
     unsigned int epoch;
-    float currentCost;
+    kiwi_fixed_t currentCost;
 } AlbedoTrainingSnapshot;
 
 typedef void (AlbedoTrainingSnapshotCallback)(AlbedoTrainingSnapshot*);
@@ -33,8 +33,8 @@ void albedo_genetic_algorithm_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float epsilon,
-    float desiredCost,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
     AlbedoCostFunction* costFunction,
     AlbedoTrainingSnapshotCallback* snapshotCallback
@@ -47,8 +47,8 @@ void albedo_genetic_algorithm_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float epsilon,
-    float desiredCost,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
     AlbedoCostFunction* costFunction
 );
@@ -60,10 +60,10 @@ void albedo_finite_difference_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredCost,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
-    float epsilon,
-    float learningRate,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t learningRate,
     AlbedoCostFunction* costFunction,
     AlbedoTrainingSnapshotCallback *snapshotCallback
 );
@@ -75,10 +75,10 @@ void albedo_finite_difference_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredCost,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
-    float epsilon,
-    float learningRate,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t learningRate,
     AlbedoCostFunction* costFunction
 ); 
 

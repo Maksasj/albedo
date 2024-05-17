@@ -7,8 +7,8 @@ void albedo_genetic_algorithm_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float epsilon,
-    float desiredCost,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
     AlbedoCostFunction* costFunction,
     AlbedoTrainingSnapshotCallback *snapshotCallback
@@ -18,8 +18,7 @@ void albedo_genetic_algorithm_training_internal(
 
     AlbedoModel* models[SAMPLE_MODELS] = { NULL };
 
-    float cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
-
+    kiwi_fixed_t cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
     for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
         int bestIndex = -1;
 
@@ -27,14 +26,15 @@ void albedo_genetic_algorithm_training_internal(
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             models[m] = albedo_copy_model(model);
 
-            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, -1.0f, 1.0f); // Todo
+            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, kiwi_float_to_fixed(-1.0f), kiwi_float_to_fixed(1.0f)); // Todo
             albedo_weights_layer_add(models[m]->weights, dif);
             albedo_free_weights_layer(dif);
         }
 
         // Simulate models
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
-            float localCost = (*costFunction)(models[m], inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+            kiwi_fixed_t localCost = (*costFunction)(models[m], inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+            // printf("%f\n", kiwi_fixed_to_float(localCost));
 
             if(localCost < cost) {
                 cost = localCost;
@@ -83,8 +83,8 @@ void albedo_genetic_algorithm_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float epsilon,
-    float desiredCost,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
     AlbedoCostFunction* costFunction
 ) {
@@ -109,10 +109,10 @@ void albedo_finite_difference_training_internal(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredCost,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
-    float epsilon,
-    float learningRate,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t learningRate,
     AlbedoCostFunction* costFunction,
     AlbedoTrainingSnapshotCallback *snapshotCallback
 ) {
@@ -122,7 +122,7 @@ void albedo_finite_difference_training_internal(
     AlbedoWeightsLayer* gradient = albedo_new_weights_layer(width, height);
 
     for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
-        float cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+        kiwi_fixed_t cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
 
         // Callback
         if(snapshotCallback != NULL) {
@@ -151,11 +151,11 @@ void albedo_finite_difference_training_internal(
                     for(int h = 0; h < 3; ++h) {
                         unsigned int index = x + y*width;
 
-                        float saved = model->weights->weights[index].kernel[w][h];
+                        kiwi_fixed_t saved = model->weights->weights[index].kernel[w][h];
                         model->weights->weights[index].kernel[w][h] += epsilon;
 
-                        float eCost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
-                        float dcost = (eCost - cost) / epsilon;
+                        kiwi_fixed_t eCost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+                        kiwi_fixed_t dcost = (eCost - cost) / epsilon;
 
                         model->weights->weights[index].kernel[w][h] = saved;
 
@@ -178,10 +178,10 @@ void albedo_finite_difference_training(
     unsigned int testCases,
     unsigned int inputCount,
     unsigned int outputCount,
-    float desiredCost,
+    kiwi_fixed_t desiredCost,
     unsigned int desiredSteps,
-    float epsilon,
-    float learningRate,
+    kiwi_fixed_t epsilon,
+    kiwi_fixed_t learningRate,
     AlbedoCostFunction* costFunction
 ) {
     albedo_finite_difference_training_internal(

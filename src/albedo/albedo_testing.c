@@ -18,12 +18,12 @@ void albedo_sumup_testing(
 
         printf("    Input data: ");
         for(int i = 0; i < inputCount; ++i)
-            printf("(%d, %d, %f)", inputs[t][i].x, inputs[t][i].y, inputs[t][i].value);
+            printf("(%d, %d, %f)", inputs[t][i].x, inputs[t][i].y, kiwi_fixed_to_float(inputs[t][i].value));
         printf("\n");
 
         printf("    Expected output: ");
         for(int i = 0; i < outputCount; ++i)
-            printf("(%d, %d, %f)", outputs[t][i].x, outputs[t][i].y, outputs[t][i].value);
+            printf("(%d, %d, %f)", outputs[t][i].x, outputs[t][i].y, kiwi_fixed_to_float(outputs[t][i].value));
         printf("\n");
 
         for(int i = 0; i < desiredSteps; ++i) {
@@ -36,12 +36,12 @@ void albedo_sumup_testing(
             int x = outputs[t][i].x;
             int y = outputs[t][i].y;
 
-            float value = model->state[model->newIndex]->neurons[x + y*model->width];
-            printf("(%d, %d, %f)", x, y, value);
+            kiwi_fixed_t value = model->state[model->newIndex]->neurons[x + y*model->width];
+            printf("(%d, %d, %f)", x, y, kiwi_fixed_to_float(value));
         }
         printf("\n");
 
-        float localError = albedo_get_dif_model_neurons_values(model, outputs[t], outputCount);
+        float localError = kiwi_fixed_to_float(albedo_get_dif_model_neurons_values(model, outputs[t], outputCount));
         error += localError;
 
         printf("    Test case error %f\n", error);

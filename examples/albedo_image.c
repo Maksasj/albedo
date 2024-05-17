@@ -64,9 +64,9 @@ void run_show_resulting_image(AlbedoModel* model, AlbedoNeuronValue** inputs, un
 }
 
 void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
-    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, snapshot->currentCost);
+    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, kiwi_fixed_to_float(snapshot->currentCost));
 
-    run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
+    // run_show_resulting_image(snapshot->model, snapshot->inputs, snapshot->inputCount);
 }
 
 int main() {
@@ -92,15 +92,15 @@ int main() {
             unsigned char pixel = ((unsigned char*) bytes)[1 + (y + x*height) * channels];
             float value = (float) pixel / (float) 256.0f;
 
-            inputs[x + y*width][0].value = (float) x / (float) width;
+            inputs[x + y*width][0].value = kiwi_float_to_fixed((float) x / (float) width);
             inputs[x + y*width][0].x = 0;
             inputs[x + y*width][0].y = 0;
 
-            inputs[x + y*width][1].value = (float) y / (float) height; 
+            inputs[x + y*width][1].value = kiwi_float_to_fixed((float) y / (float) height); 
             inputs[x + y*width][1].x = 7;
             inputs[x + y*width][1].y = 0;
 
-            outputs[x + y*width][0].value = value;
+            outputs[x + y*width][0].value = kiwi_float_to_fixed(value);
             outputs[x + y*width][0].x = 0;
             outputs[x + y*width][0].y = 7;
         }
@@ -119,8 +119,8 @@ int main() {
         TEST_CASES, 
         INPUT_COUNT, 
         OUTPUT_COUNT, 
-        5e-2, 
-        1e-1, 
+        kiwi_float_to_fixed(1e-1), 
+        kiwi_float_to_fixed(1e-1), 
         STEPS, 
         &albedo_calculate_continuous_result_cost,
         &intermediate_result

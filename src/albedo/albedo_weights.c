@@ -1,6 +1,6 @@
 #include "albedo_weights.h"
 
-AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigned int height, float min, float max) {
+AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigned int height, kiwi_fixed_t min, kiwi_fixed_t max) {
     AlbedoWeightsLayer* layer = (AlbedoWeightsLayer*) malloc(sizeof(AlbedoWeightsLayer));
 
     layer->width = width;
@@ -14,7 +14,7 @@ AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigne
         for(int y = 0; y < height; ++y) {
             for(int w = 0; w < 3; ++w)
                 for(int h = 0; h < 3; ++h)
-                    layer->weights[x + y*width].kernel[w][h] = albedo_randf(min, max);
+                    layer->weights[x + y*width].kernel[w][h] = albedo_rand_fixed(min, max);
         }
     }
 
@@ -22,7 +22,7 @@ AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigne
 }
 
 AlbedoWeightsLayer* albedo_new_weights_layer(unsigned int width, unsigned int height) {
-    return albedo_new_weights_layer_clamped(width, height, -1.0, 1.0);
+    return albedo_new_weights_layer_clamped(width, height, kiwi_float_to_fixed(-1.0), kiwi_float_to_fixed(1.0));
 }
 
 AlbedoWeightsLayer* albedo_copy_weights_layer(AlbedoWeightsLayer* src) {
@@ -95,7 +95,7 @@ void albedo_weights_layer_multiply(AlbedoWeightsLayer* target, AlbedoWeightsLaye
     }
 }
 
-void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max) {
+void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, kiwi_fixed_t min, kiwi_fixed_t max) {
     unsigned int width = target->width;
     unsigned int height = target->height;
 
@@ -112,7 +112,7 @@ void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max
     }
 }
 
-void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error) {
+void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, kiwi_fixed_t error) {
     unsigned int width = weights->width;
     unsigned int height = weights->height;
 
@@ -122,7 +122,7 @@ void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error) {
             for(int w = 0; w < 3; ++w) {
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
-                    float value = weights->weights[index].kernel[w][h]; 
+                    kiwi_fixed_t value = weights->weights[index].kernel[w][h]; 
 
                     if(value == 0.0)
                         continue;

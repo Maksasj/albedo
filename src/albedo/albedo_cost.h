@@ -3,7 +3,7 @@
 
 #include "albedo_model.h"
 
-typedef float (AlbedoCostFunction)(
+typedef kiwi_fixed_t (AlbedoCostFunction)(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 
@@ -13,7 +13,7 @@ typedef float (AlbedoCostFunction)(
     unsigned int desiredStep
 );
 
-float albedo_calculate_fixed_step_result_cost(
+kiwi_fixed_t albedo_calculate_fixed_step_result_cost(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 
@@ -23,7 +23,7 @@ float albedo_calculate_fixed_step_result_cost(
     unsigned int desiredStep
 );
 
-float albedo_calculate_continuous_result_cost(
+kiwi_fixed_t albedo_calculate_continuous_result_cost(
     AlbedoModel* model, 
     AlbedoNeuronValue** inputs,
     AlbedoNeuronValue** outputs, 

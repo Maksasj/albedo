@@ -16,7 +16,7 @@
 #define STEPS 50
 
 void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
-    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, snapshot->currentCost);
+    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, kiwi_fixed_to_float(snapshot->currentCost));
 }
 
 int main() {
@@ -24,13 +24,13 @@ int main() {
 
     // Last is a bias
     AlbedoNeuronValue rawInputs[TEST_CASES][INPUT_COUNT] = {
-        {{0, 0, 0.0f}, {1, 7, 1.0f}},
-        {{0, 0, 1.0f}, {1, 7, 1.0f}},
+        {{0, 0, kiwi_float_to_fixed(0.0f)}, {1, 7, kiwi_float_to_fixed(1.0f)}},
+        {{0, 0, kiwi_float_to_fixed(1.0f)}, {1, 7, kiwi_float_to_fixed(1.0f)}},
     };
 
     AlbedoNeuronValue rawOutputs[TEST_CASES][OUTPUT_COUNT] = {
-        {{7, 7, 1.0f}},
-        {{7, 7, 0.0f}},
+        {{7, 7, kiwi_float_to_fixed(1.0f)}},
+        {{7, 7, kiwi_float_to_fixed(0.0f)}},
     };
 
     AlbedoNeuronValue** inputs = malloc(sizeof(AlbedoNeuronValue*) * TEST_CASES);
@@ -54,8 +54,8 @@ int main() {
         TEST_CASES, 
         INPUT_COUNT, 
         OUTPUT_COUNT, 
-        0.05, 
-        0.004, 
+        kiwi_float_to_fixed(0.05), 
+        kiwi_float_to_fixed(0.004), 
         STEPS, 
         &albedo_calculate_fixed_step_result_cost,
         &intermediate_result

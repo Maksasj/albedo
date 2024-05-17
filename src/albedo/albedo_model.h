@@ -28,18 +28,11 @@ void albedo_set_model_neurons_value(AlbedoModel* model, float value);
 void albedo_reset_model_neurons_value(AlbedoModel* model);
 
 void albedo_set_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count);
-float albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count);
+kiwi_fixed_t albedo_get_dif_model_neurons_values(AlbedoModel* model, AlbedoNeuronValue* values, unsigned int count);
 
 void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldState, AlbedoWeightsLayer* weights);
 
 void albedo_simulate_model_step(AlbedoModel* model);
 void albedo_simulate_model_steps(AlbedoModel* model, unsigned int steps);
-
-// =========================================================
-void set_inputs_model(AlbedoModel* model, float input[]);
-
-float calculate_error_delta(AlbedoModel* model, float expectedOutput[]);
-float calculate_error(AlbedoModel* model, float expectedOutput[]);
-// =========================================================
 
 #endif

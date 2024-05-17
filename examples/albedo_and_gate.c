@@ -16,24 +16,24 @@
 #define STEPS 50
 
 void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
-    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, snapshot->currentCost);
+    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, kiwi_fixed_to_float(snapshot->currentCost));
 }
 
 int main() {
     srand(time(0));
 
     AlbedoNeuronValue rawInputs[TEST_CASES][INPUT_COUNT] = {
-        {{0, 0, 0.0f}, {0, 1, 0.0f}},
-        {{0, 0, 1.0f}, {0, 1, 0.0f}},
-        {{0, 0, 0.0f}, {0, 1, 1.0f}},
-        {{0, 0, 1.0f}, {0, 1, 1.0f}}
+        {{0, 0, kiwi_float_to_fixed(0.0f)}, {0, 1, kiwi_float_to_fixed(0.0f)}},
+        {{0, 0, kiwi_float_to_fixed(1.0f)}, {0, 1, kiwi_float_to_fixed(0.0f)}},
+        {{0, 0, kiwi_float_to_fixed(0.0f)}, {0, 1, kiwi_float_to_fixed(1.0f)}},
+        {{0, 0, kiwi_float_to_fixed(1.0f)}, {0, 1, kiwi_float_to_fixed(1.0f)}}
     };
 
     AlbedoNeuronValue rawOutputs[TEST_CASES][OUTPUT_COUNT] = {
-        {{7, 7, 0.0f}},
-        {{7, 7, 0.0f}},
-        {{7, 7, 0.0f}},
-        {{7, 7, 1.0f}}
+        {{7, 7, kiwi_float_to_fixed(0.0f)}},
+        {{7, 7, kiwi_float_to_fixed(0.0f)}},
+        {{7, 7, kiwi_float_to_fixed(0.0f)}},
+        {{7, 7, kiwi_float_to_fixed(1.0f)}}
     };
 
     AlbedoNeuronValue** inputs = malloc(sizeof(AlbedoNeuronValue*) * TEST_CASES);
@@ -50,7 +50,19 @@ int main() {
     AlbedoModel* model = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
 
     printf("Started training\n");
-    albedo_genetic_algorithm_training(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, 0.10, 0.01, STEPS, &albedo_calculate_fixed_step_result_cost);
+    albedo_genetic_algorithm_training_internal(
+        model, 
+        inputs, 
+        outputs, 
+        TEST_CASES, 
+        INPUT_COUNT, 
+        OUTPUT_COUNT, 
+        kiwi_float_to_fixed(0.05), 
+        kiwi_float_to_fixed(0.004), 
+        STEPS, 
+        &albedo_calculate_fixed_step_result_cost,
+        &intermediate_result
+    );
     printf("Training done\n");
     
     albedo_sumup_testing(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, STEPS);
