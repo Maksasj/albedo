@@ -18,7 +18,8 @@ void albedo_genetic_algorithm_training_internal(
 
     AlbedoModel* models[SAMPLE_MODELS] = { NULL };
 
-    float cost = 1.0f;
+    float cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
+
     for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
         int bestIndex = -1;
 

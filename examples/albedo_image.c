@@ -112,6 +112,22 @@ int main() {
 
     printf("Started training\n");
 
+    albedo_genetic_algorithm_training_internal(
+        model, 
+        inputs, 
+        outputs, 
+        TEST_CASES, 
+        INPUT_COUNT, 
+        OUTPUT_COUNT, 
+        5e-2, 
+        1e-1, 
+        STEPS, 
+        &albedo_calculate_continuous_result_cost,
+        &intermediate_result
+    );
+
+    /*
+    // Gradient descent
     albedo_finite_difference_training_internal(
         model, 
         inputs, 
@@ -126,6 +142,7 @@ int main() {
         &albedo_calculate_continuous_result_cost,
         &intermediate_result
     );
+    */
 
     printf("Training done\n");
     
