@@ -8,13 +8,13 @@ AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigne
 
     unsigned int size = width * height;
 
-    layer->neurons = (AlbedoNeuronWeight*) malloc(size * sizeof(AlbedoNeuronWeight));
+    layer->weights = (AlbedoNeuronKernel*) malloc(size * sizeof(AlbedoNeuronKernel));
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
             for(int w = 0; w < 3; ++w)
                 for(int h = 0; h < 3; ++h)
-                    layer->neurons[x + y*width].mask[w][h] = albedo_randf(min, max);
+                    layer->weights[x + y*width].kernel[w][h] = albedo_randf(min, max);
         }
     }
 
@@ -31,16 +31,16 @@ AlbedoWeightsLayer* albedo_copy_weights_layer(AlbedoWeightsLayer* src) {
     layer->width = src->width;
     layer->height = src->height;
 
-    unsigned int size = layer->width * layer->height * sizeof(AlbedoNeuronWeight);
+    unsigned int size = layer->width * layer->height * sizeof(AlbedoNeuronKernel);
 
-    layer->neurons = (AlbedoNeuronWeight*) malloc(size);
-    memcpy(layer->neurons, src->neurons, size);
+    layer->weights = (AlbedoNeuronKernel*) malloc(size);
+    memcpy(layer->weights, src->weights, size);
 
     return layer;
 }
 
 void albedo_free_weights_layer(AlbedoWeightsLayer* weights) {
-    free(weights->neurons);
+    free(weights->weights);
     free(weights);
 }
 
@@ -54,7 +54,7 @@ void albedo_weights_layer_add(AlbedoWeightsLayer* target, AlbedoWeightsLayer* an
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
-                    target->neurons[index].mask[w][h] += another->neurons[index].mask[w][h];
+                    target->weights[index].kernel[w][h] += another->weights[index].kernel[w][h];
                 }
             }
         }
@@ -71,7 +71,7 @@ void albedo_weights_layer_subtract(AlbedoWeightsLayer* target, AlbedoWeightsLaye
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
-                    target->neurons[index].mask[w][h] -= another->neurons[index].mask[w][h];
+                    target->weights[index].kernel[w][h] -= another->weights[index].kernel[w][h];
                 }
             }
         }
@@ -88,7 +88,7 @@ void albedo_weights_layer_multiply(AlbedoWeightsLayer* target, AlbedoWeightsLaye
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
-                    target->neurons[index].mask[w][h] *= another->neurons[index].mask[w][h];
+                    target->weights[index].kernel[w][h] *= another->weights[index].kernel[w][h];
                 }
             }
         }
@@ -105,7 +105,7 @@ void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
-                    target->neurons[index].mask[w][h] = albedo_clampf(target->neurons[index].mask[w][h], min, max);
+                    target->weights[index].kernel[w][h] = albedo_clampf(target->weights[index].kernel[w][h], min, max);
                 }
             }
         }
@@ -118,17 +118,17 @@ void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error) {
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            // How we edit our mask
+            // How we edit our kernel
             for(int w = 0; w < 3; ++w) {
                 for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
-                    float value = weights->neurons[index].mask[w][h]; 
+                    float value = weights->weights[index].kernel[w][h]; 
 
                     if(value == 0.0)
                         continue;
 
                     value += error * albedo_randf(-1.0f, 1.0f);
-                    weights->neurons[index].mask[w][h] = albedo_clampf(value, -1.0f, 1.0f);
+                    weights->weights[index].kernel[w][h] = albedo_clampf(value, -1.0f, 1.0f);
                 }
             }
         }

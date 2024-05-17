@@ -63,10 +63,10 @@ void export_gradient_layer_to_png(AlbedoWeightsLayer* layer, char* fileName) {
     unsigned int* grid = malloc(size * sizeof(unsigned int));
 
     for(int i = 0; i < size; ++i) {
-        unsigned char r = (layer->neurons[i].mask[1][0] + 0.5f) * 255.0f;   
-        unsigned char g = (layer->neurons[i].mask[0][1] + 0.5f) * 255.0f;
-        unsigned char b = (layer->neurons[i].mask[2][1] + 0.5f) * 255.0f;
-        unsigned char a = (layer->neurons[i].mask[1][2] + 0.5f) * 255.0f;
+        unsigned char r = (layer->weights[i].kernel[1][0] + 0.5f) * 255.0f;   
+        unsigned char g = (layer->weights[i].kernel[0][1] + 0.5f) * 255.0f;
+        unsigned char b = (layer->weights[i].kernel[2][1] + 0.5f) * 255.0f;
+        unsigned char a = (layer->weights[i].kernel[1][2] + 0.5f) * 255.0f;
 
         grid[i] = (a << 24) | (b << 16) | (g << 8) | (r);
     }   

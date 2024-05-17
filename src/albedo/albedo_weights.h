@@ -7,15 +7,15 @@
 
 #include "albedo_utils.h"
 
-typedef struct AlbedoNeuronWeight {
-    float mask[3][3];
-} AlbedoNeuronWeight;
+typedef struct AlbedoNeuronKernel {
+    float kernel[3][3];
+} AlbedoNeuronKernel;
 
 typedef struct AlbedoWeightsLayer {
     unsigned int width;
     unsigned int height;
 
-    AlbedoNeuronWeight* neurons;
+    AlbedoNeuronKernel* weights;
 } AlbedoWeightsLayer;
 
 typedef struct AlbedoNeuronValue { 

@@ -151,15 +151,15 @@ void albedo_finite_difference_training_internal(
                     for(int h = 0; h < 3; ++h) {
                         unsigned int index = x + y*width;
 
-                        float saved = model->weights->neurons[index].mask[w][h];
-                        model->weights->neurons[index].mask[w][h] += epsilon;
+                        float saved = model->weights->weights[index].kernel[w][h];
+                        model->weights->weights[index].kernel[w][h] += epsilon;
 
                         float eCost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
                         float dcost = (eCost - cost) / epsilon;
 
-                        model->weights->neurons[index].mask[w][h] = saved;
+                        model->weights->weights[index].kernel[w][h] = saved;
 
-                        gradient->neurons[index].mask[w][h] = learningRate*dcost;
+                        gradient->weights[index].kernel[w][h] = learningRate*dcost;
                     }
                 }
             }
