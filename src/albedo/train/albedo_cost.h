@@ -1,7 +1,7 @@
 #ifndef ALBEDO_COST_H
 #define ALBEDO_COST_H
 
-#include "albedo_model.h"
+#include "../arc/albedo_model.h"
 
 typedef kiwi_fixed_t (AlbedoCostFunction)(
     AlbedoModel* model, 

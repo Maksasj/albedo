@@ -2,10 +2,10 @@
 #define ALBEDO_TRAINING_H
 
 #include "albedo_cost.h"
-#include "albedo_model.h"
+#include "../arc/albedo_model.h"
 
 #define SAMPLE_MODELS 100
-#define ALBEDO_MAX_EPOCHS 10000
+#define ALBEDO_MAX_EPOCHS 1000000
 
 // Todo add some cost functions
 

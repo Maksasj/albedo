@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#include "albedo_utils.h"
+#include "../albedo_utils.h"
 
 typedef struct AlbedoNeuronKernel {
     kiwi_fixed_t kernel[3][3];

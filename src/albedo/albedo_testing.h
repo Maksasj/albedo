@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "albedo_model.h"
+#include "arc/albedo_model.h"
 
 void albedo_sumup_testing(
     AlbedoModel* model, 

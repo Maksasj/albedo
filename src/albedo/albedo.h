@@ -3,12 +3,8 @@
 
 #include "albedo_utils.h"
 
-#include "albedo_neurons.h"
-#include "albedo_weights.h"
-#include "albedo_model.h"
-
-#include "albedo_cost.h"
-#include "albedo_training.h"
+#include "arc/albedo_arc.h"
+#include "train/albedo_training.h"
 
 #include "albedo_testing.h"
 
