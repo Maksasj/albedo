@@ -80,24 +80,110 @@ void calculate_new_state(AlbedoNeuronLayer* newState, AlbedoNeuronLayer* oldStat
     unsigned int width = newState->width;
     unsigned int height = newState->height;
 
-    for(int x = 0; x < width; ++x) {
-        for(int y = 0; y < height; ++y) {
-            int maskWidth = ALBEDO_NEURON_WEIGHT_MASK_WIDTH / 2;
-            int maskHeight = ALBEDO_NEURON_WEIGHT_MASK_HEIGHT / 2;
+    unsigned int widthM = width - 1;
+    unsigned int heightM = height - 1;
 
-            float value = 0.0f; 
+    // Corners
+    {   // Top left
+        float value = oldState->neurons[0]              * weights->neurons[0].mask[1][1];
+        value += oldState->neurons[1]                   * weights->neurons[0].mask[2][1];
+        value += oldState->neurons[width]                   * weights->neurons[0].mask[1][0];
+        value += oldState->neurons[1 + width]                   * weights->neurons[0].mask[2][0];
+        newState->neurons[0] = albedo_clampf(value, 0.0, 1.0);
+    }
 
-            for(int w = -maskWidth; w <= maskWidth; ++w) {
-                for(int h = -maskHeight; h <= maskHeight; ++h) {
-                    if(((x + w) < 0) || ((x + w) >= width))
-                        continue;
-                    
-                    if(((y + h) < 0) || ((y + h) >= height))
-                        continue;
+    {   // Top right
+        float value = oldState->neurons[widthM]         * weights->neurons[widthM].mask[1][1];
+        value += oldState->neurons[widthM - 1]              * weights->neurons[widthM].mask[0][1];
+        value += oldState->neurons[widthM + width]              * weights->neurons[widthM].mask[1][0];
+        value += oldState->neurons[widthM - 1 + width]              * weights->neurons[widthM].mask[0][0];
+        newState->neurons[widthM] = albedo_clampf(value, 0.0, 1.0);
+    }
 
-                    value += oldState->neurons[(x + w) + (y + h)*width] * weights->neurons[x + y*width].mask[w + maskWidth][h + maskHeight];
-                }
-            }
+    {   // Bottom left
+        unsigned int index = heightM * width;
+        float value = oldState->neurons[index]          * weights->neurons[index].mask[1][1];
+        value += oldState->neurons[index - width]               * weights->neurons[index].mask[1][2];
+        value += oldState->neurons[index + 1]               * weights->neurons[index].mask[2][1];
+        value += oldState->neurons[index - width + 1]               * weights->neurons[index].mask[2][2];
+        newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+    }
+
+    {   // Bottom right
+        unsigned int index = widthM + heightM * width;
+        float value = oldState->neurons[index]          * weights->neurons[index].mask[1][1];
+        value += oldState->neurons[index - 1]               * weights->neurons[index].mask[1][0];
+        value += oldState->neurons[index - width]               * weights->neurons[index].mask[2][1];
+        value += oldState->neurons[index - 1 - width]               * weights->neurons[index].mask[2][0];
+        newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+    }
+
+    // Borders
+    // along x axis
+    for(int x = 1; x < widthM; ++x) {
+        {
+            float value = oldState->neurons[x]  * weights->neurons[x].mask[1][1];
+            value += oldState->neurons[x - 1]       * weights->neurons[x].mask[0][1];
+            value += oldState->neurons[x + 1]       * weights->neurons[x].mask[2][1];
+            value += oldState->neurons[x + width - 1]       * weights->neurons[x].mask[0][0];
+            value += oldState->neurons[x + width]       * weights->neurons[x].mask[1][0];
+            value += oldState->neurons[x + width + 1]       * weights->neurons[x].mask[2][0];
+            newState->neurons[x] = albedo_clampf(value, 0.0, 1.0);
+        }
+
+        {
+            unsigned int index = x + heightM * width;
+            float value = oldState->neurons[index]  * weights->neurons[index].mask[1][1];
+            value += oldState->neurons[index - 1]       * weights->neurons[index].mask[0][1];
+            value += oldState->neurons[index + 1]       * weights->neurons[index].mask[2][1];
+            value += oldState->neurons[index - width -1]       * weights->neurons[index].mask[0][2];
+            value += oldState->neurons[index - width]       * weights->neurons[index].mask[1][2];
+            value += oldState->neurons[index - width + 1]       * weights->neurons[index].mask[2][2];
+            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+        }
+    }
+
+    // along y axis
+    for(int y = 1; y < widthM; ++y) {
+        {
+            unsigned int index = y * width;
+            float value = oldState->neurons[index]  * weights->neurons[index].mask[1][1];
+            value += oldState->neurons[index - width]       * weights->neurons[index].mask[1][2];
+            value += oldState->neurons[index + width]       * weights->neurons[index].mask[1][0];
+            value += oldState->neurons[index - width + 1]       * weights->neurons[index].mask[2][2];
+            value += oldState->neurons[index + 1]       * weights->neurons[index].mask[2][1];
+            value += oldState->neurons[index + width + 1]       * weights->neurons[index].mask[2][0];
+            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+        }
+
+        {
+            unsigned int index = widthM + y * width;
+            float value = oldState->neurons[index]  * weights->neurons[index].mask[1][1];
+            value += oldState->neurons[index - width]       * weights->neurons[index].mask[1][2];
+            value += oldState->neurons[index + width]       * weights->neurons[index].mask[1][0];
+            value += oldState->neurons[index - width - 1]       * weights->neurons[index].mask[0][2];
+            value += oldState->neurons[index - 1]       * weights->neurons[index].mask[0][1];
+            value += oldState->neurons[index + width - 1]       * weights->neurons[index].mask[0][0];
+            newState->neurons[index] = albedo_clampf(value, 0.0, 1.0);
+        }
+    }
+
+    // Center square
+    for(int x = 1; x < widthM; ++x) {
+        for(int y = 1; y < heightM; ++y) {
+            unsigned int index = x + y*width;
+
+            float value = oldState->neurons[(x - 1)  + (y + 1)*width]   * weights->neurons[index].mask[0][2];
+            value += oldState->neurons[(x)      + (y + 1)*width]        * weights->neurons[index].mask[1][2];
+            value += oldState->neurons[(x + 1)  + (y + 1)*width]        * weights->neurons[index].mask[2][2];
+
+            value += oldState->neurons[(x - 1)  + (y)*width]            * weights->neurons[index].mask[0][1];
+            value += oldState->neurons[(x)      + (y)*width]            * weights->neurons[index].mask[1][1];
+            value += oldState->neurons[(x + 1)  + (y)*width]            * weights->neurons[index].mask[2][1];
+
+            value += oldState->neurons[(x - 1)  + (y - 1)*width]        * weights->neurons[index].mask[0][0];
+            value += oldState->neurons[(x)      + (y - 1)*width]        * weights->neurons[index].mask[1][0];
+            value += oldState->neurons[(x + 1)  + (y - 1)*width]        * weights->neurons[index].mask[2][0];
 
             newState->neurons[x + y*width] = albedo_clampf(value, 0.0, 1.0);
         }

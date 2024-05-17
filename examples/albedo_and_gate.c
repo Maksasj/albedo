@@ -15,6 +15,10 @@
 #define OUTPUT_COUNT 1
 #define STEPS 50
 
+void intermediate_result(AlbedoTrainingSnapshot* snapshot) {
+    printf("Simulated epoch %d, cost %f\n", snapshot->epoch, snapshot->currentCost);
+}
+
 int main() {
     srand(time(0));
 

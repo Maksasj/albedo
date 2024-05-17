@@ -26,7 +26,7 @@ void albedo_genetic_algorithm_training_internal(
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             models[m] = albedo_copy_model(model);
 
-            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, -epsilon, epsilon);
+            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, -1.0f, 1.0f); // Todo
             albedo_weights_layer_add(models[m]->weights, dif);
             albedo_free_weights_layer(dif);
         }
@@ -34,7 +34,7 @@ void albedo_genetic_algorithm_training_internal(
         // Simulate models
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             float localCost = (*costFunction)(models[m], inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
-            
+
             if(localCost < cost) {
                 cost = localCost;
                 bestIndex = m;
@@ -146,8 +146,8 @@ void albedo_finite_difference_training_internal(
 
         for(int x = 0; x < width; ++x) {
             for(int y = 0; y < height; ++y) {
-                for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                    for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+                for(int w = 0; w < 3; ++w) {
+                    for(int h = 0; h < 3; ++h) {
                         unsigned int index = x + y*width;
 
                         float saved = model->weights->neurons[index].mask[w][h];

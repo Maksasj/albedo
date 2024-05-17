@@ -12,8 +12,8 @@ AlbedoWeightsLayer* albedo_new_weights_layer_clamped(unsigned int width, unsigne
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w)
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h)
+            for(int w = 0; w < 3; ++w)
+                for(int h = 0; h < 3; ++h)
                     layer->neurons[x + y*width].mask[w][h] = albedo_randf(min, max);
         }
     }
@@ -50,8 +50,8 @@ void albedo_weights_layer_add(AlbedoWeightsLayer* target, AlbedoWeightsLayer* an
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+            for(int w = 0; w < 3; ++w) {
+                for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
                     target->neurons[index].mask[w][h] += another->neurons[index].mask[w][h];
@@ -67,8 +67,8 @@ void albedo_weights_layer_subtract(AlbedoWeightsLayer* target, AlbedoWeightsLaye
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+            for(int w = 0; w < 3; ++w) {
+                for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
                     target->neurons[index].mask[w][h] -= another->neurons[index].mask[w][h];
@@ -84,8 +84,8 @@ void albedo_weights_layer_multiply(AlbedoWeightsLayer* target, AlbedoWeightsLaye
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+            for(int w = 0; w < 3; ++w) {
+                for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
                     target->neurons[index].mask[w][h] *= another->neurons[index].mask[w][h];
@@ -101,8 +101,8 @@ void albedo_weights_layer_clamp(AlbedoWeightsLayer* target, float min, float max
 
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+            for(int w = 0; w < 3; ++w) {
+                for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
 
                     target->neurons[index].mask[w][h] = albedo_clampf(target->neurons[index].mask[w][h], min, max);
@@ -119,8 +119,8 @@ void albedo_tune_weights_layer(AlbedoWeightsLayer* weights, float error) {
     for(int x = 0; x < width; ++x) {
         for(int y = 0; y < height; ++y) {
             // How we edit our mask
-            for(int w = 0; w < ALBEDO_NEURON_WEIGHT_MASK_WIDTH; ++w) {
-                for(int h = 0; h < ALBEDO_NEURON_WEIGHT_MASK_HEIGHT; ++h) {
+            for(int w = 0; w < 3; ++w) {
+                for(int h = 0; h < 3; ++h) {
                     unsigned int index = x + y*width;
                     float value = weights->neurons[index].mask[w][h]; 
 

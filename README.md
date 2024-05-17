@@ -18,8 +18,8 @@ Albedo is a cellular automaton (similar to [Game Of Live](https://en.wikipedia.o
 
 ## Building
 ```bash
-cmake -B build -G Ninja     
-cmake --build build
+cmake -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release && ./build/release/examples/albedo_image_example
 ```
 
 ## Example

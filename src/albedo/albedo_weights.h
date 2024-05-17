@@ -7,11 +7,8 @@
 
 #include "albedo_utils.h"
 
-#define ALBEDO_NEURON_WEIGHT_MASK_WIDTH 5
-#define ALBEDO_NEURON_WEIGHT_MASK_HEIGHT 5
-
 typedef struct AlbedoNeuronWeight {
-    float mask[ALBEDO_NEURON_WEIGHT_MASK_WIDTH][ALBEDO_NEURON_WEIGHT_MASK_HEIGHT];
+    float mask[3][3];
 } AlbedoNeuronWeight;
 
 typedef struct AlbedoWeightsLayer {
