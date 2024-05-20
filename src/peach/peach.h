@@ -10,21 +10,21 @@ typedef float peach_float_t;
 #define PEACH_RANDOM_FLOAT (rand() / (float) RAND_MAX)
 
 typedef struct peach_matrix_t {
-    unsigned int width;
-    unsigned int height;
+    unsigned int rows;
+    unsigned int cols;
 
     peach_float_t* value;
 } peach_matrix_t;
 
-#define PEACH_MATRIX_AT(M, X, Y) ((M)->value[(X) + (Y)*(M->width)])
+#define PEACH_MATRIX_AT(M, ROW, COL) ((M)->value[(ROW) * M->cols + (COL)])
 
-peach_matrix_t* paech_new_matrix(unsigned int width, unsigned int height) {
-    unsigned long long size = width * height * sizeof(peach_float_t);
+peach_matrix_t* paech_new_matrix(unsigned int rows, unsigned int cols) {
+    unsigned long long size = rows * cols * sizeof(peach_float_t);
 
     peach_matrix_t* matrix = (peach_matrix_t*) malloc(sizeof(peach_matrix_t));
     
-    matrix->width = width;
-    matrix->height = height;
+    matrix->rows = rows;
+    matrix->cols = cols;
     
     matrix->value = malloc(size);
     memset(matrix->value, 0, size);
@@ -32,11 +32,11 @@ peach_matrix_t* paech_new_matrix(unsigned int width, unsigned int height) {
     return matrix;
 }
 
-peach_matrix_t* paech_new_matrix_random(unsigned int width, unsigned int height, peach_float_t min, peach_float_t max) {
-    peach_matrix_t* matrix = paech_new_matrix(width, height);
+peach_matrix_t* paech_new_matrix_random(unsigned int rows, unsigned int cols, peach_float_t min, peach_float_t max) {
+    peach_matrix_t* matrix = paech_new_matrix(rows, cols);
 
-    for(int i = 0; i < width; ++i) {
-        for(int j = 0; j < height; ++j) {
+    for(int j = 0; j < cols; ++j) {
+        for(int i = 0; i < rows; ++i) {
             PEACH_MATRIX_AT(matrix, i, j) = min + PEACH_MULTIPLY(PEACH_RANDOM_FLOAT, (max - min));
         }
     }
@@ -49,20 +49,39 @@ void peach_free_matrix(peach_matrix_t* matrix) {
     free(matrix);
 }
 
+void peach_matrix_substract_target(peach_matrix_t* a, peach_matrix_t* b) {
+    /*
+    if(a->rows != b->rows)
+        return NULL;
+
+    if(a->cols != b->cols)
+        return NULL;
+    */
+
+    unsigned int rows = a->rows;
+    unsigned int cols = a->cols;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(a, i, j) -= PEACH_MATRIX_AT(b, i, j);
+        }
+    }
+}
+
 peach_matrix_t* peach_matrix_substract(peach_matrix_t* a, peach_matrix_t* b) {
-    if(a->width != b->width)
+    if(a->rows != b->rows)
         return NULL;
 
-    if(a->height != b->height)
+    if(a->cols != b->cols)
         return NULL;
 
-    unsigned int width = a->width;
-    unsigned int height = a->height;
+    unsigned int rows = a->rows;
+    unsigned int cols = a->cols;
 
-    peach_matrix_t* result = paech_new_matrix(width, height);
+    peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) - PEACH_MATRIX_AT(b, i, j);
         }
     }
@@ -71,19 +90,19 @@ peach_matrix_t* peach_matrix_substract(peach_matrix_t* a, peach_matrix_t* b) {
 }
 
 peach_matrix_t* peach_matrix_sum(peach_matrix_t* a, peach_matrix_t* b) {
-    if(a->width != b->width)
+    if(a->rows != b->rows)
         return NULL;
 
-    if(a->height != b->height)
+    if(a->cols != b->cols)
         return NULL;
 
-    unsigned int width = a->width;
-    unsigned int height = a->height;
+    unsigned int rows = a->rows;
+    unsigned int cols = a->cols;
 
-    peach_matrix_t* result = paech_new_matrix(width, height);
+    peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) + PEACH_MATRIX_AT(b, i, j);
         }
     }
@@ -91,25 +110,71 @@ peach_matrix_t* peach_matrix_sum(peach_matrix_t* a, peach_matrix_t* b) {
     return result;
 }
 
+void peach_matrix_fill(peach_matrix_t* target, peach_float_t value) {
+    const unsigned int rows = target->rows;
+    const unsigned int cols = target->cols;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(target, i, j) = value;
+        }
+    }
+}
+
 peach_matrix_t* peach_matrix_multiply(peach_matrix_t* a, peach_matrix_t* b) {
-    if(a->width != b->height)
+    if(a->rows != b->rows)
         return NULL;
 
-    unsigned int width = b->width;
-    unsigned int height = a->height;
+    if(a->cols != b->cols)
+        return NULL;
 
-    peach_matrix_t* result = paech_new_matrix(width, height);
+    unsigned int rows = a->rows;
+    unsigned int cols = a->cols;
 
-    for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) {
-            PEACH_MATRIX_AT(result, j, i) = 0;
+    peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-            for(int k = 0; k < a->width; ++k)
-                PEACH_MATRIX_AT(result, j, i) += PEACH_MULTIPLY(PEACH_MATRIX_AT(a, k, i), PEACH_MATRIX_AT(b, j, k));
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) * PEACH_MATRIX_AT(b, i, j);
         }
     }
 
     return result;
+}
+
+void peach_matrix_scale(peach_matrix_t* target, peach_float_t value) {
+    unsigned int rows = target->rows;
+    unsigned int cols = target->cols;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(target, i, j) *= value;
+        }
+    }
+}
+
+peach_matrix_t* peach_matrix_dot(peach_matrix_t* a, peach_matrix_t* b) {
+    if(a->cols != b->rows)
+        return NULL;
+
+    unsigned int n = a->cols;
+    
+    unsigned int rows = a->rows;
+    unsigned int cols = b->cols;
+
+    peach_matrix_t* mat = paech_new_matrix(rows, cols);
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(mat, i, j) = 0;
+
+            for (int k = 0; k < n; ++k) {
+                PEACH_MATRIX_AT(mat, i, j) += PEACH_MATRIX_AT(a, i, k) * PEACH_MATRIX_AT(b, k, j);
+            }
+        }
+    }
+
+    return mat;
 }
 
 void peach_print_matrix(peach_matrix_t* m) {
@@ -118,16 +183,16 @@ void peach_print_matrix(peach_matrix_t* m) {
         return;
     }
 
-    unsigned int width = m->width;
-    unsigned int height = m->height;
+    unsigned int rows = m->rows;
+    unsigned int cols = m->cols;
 
-    printf("(%d %d) = {\n", width, height);
+    printf("(%d %d) = {\n", rows, cols);
 
-    for(int j = 0; j < height; ++j) { 
+    for(int i = 0; i < rows; ++i) { 
         printf("    ");
 
-        for(int i = 0; i < width; ++i) {
-            printf("%f, ", PEACH_MATRIX_AT(m, j, i));
+        for(int j = 0; j < cols; ++j) {
+            printf("%f, ", PEACH_MATRIX_AT(m, i, j));
         }
 
         printf("\n");
