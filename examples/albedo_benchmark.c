@@ -7,6 +7,7 @@
 #include "albedo_visualization.h"
 #include "albedo/albedo.h"
 
+#define CHERRY_IMPLEMENTATION
 #include "cherry/cherry.h"
 
 #define GRID_WIDTH 512

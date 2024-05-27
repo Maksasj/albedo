@@ -1,2 +1,0 @@
-FILE(GLOB_RECURSE KIWI_SRC_FILES *.c)
-add_library(kiwi STATIC ${KIWI_SRC_FILES})

@@ -60,7 +60,7 @@ PEACH_INLINE void peach_matrix_print(peach_matrix_t* m);
 #ifdef PEACH_IMPLEMENTATION
 
 PEACH_INLINE peach_float_t peach_sigmoid(peach_float_t n) {
-    return (1 / (1 + powf(PEACH_EULER_NUMBER, -n)));
+    return (1.0f / (1 + powf(PEACH_EULER_NUMBER, -n)));
 }
 
 PEACH_INLINE peach_float_t peach_relu(peach_float_t n) {
@@ -294,7 +294,8 @@ PEACH_INLINE void peach_matrix_apply_sigmoid(peach_matrix_t* target) {
 
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
-            PEACH_MATRIX_AT(target, i, j) = peach_sigmoid(PEACH_MATRIX_AT(target, i, j));
+            const peach_float_t value = peach_sigmoid(PEACH_MATRIX_AT(target, i, j));
+            PEACH_MATRIX_AT(target, i, j) = value;
         }
     }
 }

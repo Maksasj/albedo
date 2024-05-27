@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+#define PEACH_IMPLEMENTATION
 #include "kiwi/kiwi.h"
 
 #define albedo_min(a,b) (((a)<(b))?(a):(b))
