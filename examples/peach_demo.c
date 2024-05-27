@@ -111,7 +111,7 @@ int main() {
 
     static float learningRate = 0.05f;
 
-    for(int i = 0; i < 1000000; ++i) {
+    for(int i = 0; i < 10000; ++i) {
         calc_gradient(&arc, &gradient, inputs, outputs, 4);
         
         peach_matrix_scale(gradient.weights, learningRate);

@@ -40,3 +40,7 @@ target_link_libraries(albedo_benchmark m)
 FILE(GLOB PEACH_DEMO_EXAMPLE_FILES peach_demo.c)
 add_executable(peach_demo ${PEACH_DEMO_EXAMPLE_FILES})
 target_link_libraries(peach_demo m)
+
+FILE(GLOB BLUEBERRY_DEMO_EXAMPLE_FILES blueberry_demo.c)
+add_executable(blueberry_demo ${BLUEBERRY_DEMO_EXAMPLE_FILES})
+target_link_libraries(blueberry_demo m)

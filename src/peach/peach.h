@@ -34,9 +34,12 @@ PEACH_INLINE peach_matrix_t* paech_new_matrix(unsigned int rows, unsigned int co
 PEACH_INLINE peach_matrix_t* paech_new_matrix_square(unsigned int size);
 PEACH_INLINE peach_matrix_t* paech_new_matrix_random(unsigned int rows, unsigned int cols, peach_float_t min, peach_float_t max);
 
+PEACH_INLINE peach_matrix_t* paech_copy_matrix(peach_matrix_t* src);
+
 PEACH_INLINE void peach_free_matrix(peach_matrix_t* matrix);
 
 PEACH_INLINE void peach_matrix_fill(peach_matrix_t* target, peach_float_t value);
+PEACH_INLINE void peach_matrix_rand(peach_matrix_t* target, peach_float_t min, peach_float_t max);
 PEACH_INLINE void peach_matrix_copy_content_target(peach_matrix_t* dst, peach_matrix_t* src);
 PEACH_INLINE void peach_matrix_scale(peach_matrix_t* target, peach_float_t value);
 
@@ -51,6 +54,8 @@ PEACH_INLINE void peach_matrix_sum_target(peach_matrix_t* target, peach_matrix_t
 PEACH_INLINE void peach_matrix_sub_target(peach_matrix_t* target, peach_matrix_t* b);
 PEACH_INLINE void peach_matrix_mul_target(peach_matrix_t* target, peach_matrix_t* b);
 PEACH_INLINE void peach_matrix_div_target(peach_matrix_t* target, peach_matrix_t* b);
+
+PEACH_INLINE void peach_matrix_dot_target(peach_matrix_t* target, peach_matrix_t* a, peach_matrix_t* b);
 
 PEACH_INLINE void peach_matrix_apply_sigmoid(peach_matrix_t* target);
 PEACH_INLINE void peach_matrix_apply_relu(peach_matrix_t* target);
@@ -91,9 +96,16 @@ PEACH_INLINE peach_matrix_t* paech_new_matrix_square(unsigned int size) {
 PEACH_INLINE peach_matrix_t* paech_new_matrix_random(unsigned int rows, unsigned int cols, peach_float_t min, peach_float_t max) {
     peach_matrix_t* matrix = paech_new_matrix(rows, cols);
 
-    for(int j = 0; j < cols; ++j)
-        for(int i = 0; i < rows; ++i)
-            PEACH_MATRIX_AT(matrix, i, j) = min + PEACH_MULTIPLY(PEACH_RANDOM_FLOAT, (max - min));
+    peach_matrix_rand(matrix, min, max);
+    return matrix;
+}
+
+PEACH_INLINE peach_matrix_t* paech_copy_matrix(peach_matrix_t* src) {
+    const unsigned int rows = src->rows;
+    const unsigned int cols = src->cols;
+
+    peach_matrix_t* matrix = paech_new_matrix(rows, cols);
+    peach_matrix_copy_content_target(matrix, src);
 
     return matrix;
 }
@@ -110,6 +122,17 @@ PEACH_INLINE void peach_matrix_fill(peach_matrix_t* target, peach_float_t value)
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             PEACH_MATRIX_AT(target, i, j) = value;
+        }
+    }
+}
+
+PEACH_INLINE void peach_matrix_rand(peach_matrix_t* target, peach_float_t min, peach_float_t max) {
+    const unsigned int rows = target->rows;
+    const unsigned int cols = target->cols;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(target, i, j) = min + PEACH_MULTIPLY(PEACH_RANDOM_FLOAT, (max - min));;
         }
     }
 }
@@ -284,6 +307,25 @@ PEACH_INLINE void peach_matrix_div_target(peach_matrix_t* target, peach_matrix_t
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             PEACH_MATRIX_AT(target, i, j) /= PEACH_MATRIX_AT(b, i, j);
+        }
+    }
+}
+
+PEACH_INLINE void peach_matrix_dot_target(peach_matrix_t* target, peach_matrix_t* a, peach_matrix_t* b) {
+    PEACH_ASSERT(a->cols == b->rows);
+
+    unsigned int n = a->cols;
+    
+    unsigned int rows = a->rows;
+    unsigned int cols = b->cols;
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            PEACH_MATRIX_AT(target, i, j) = 0;
+
+            for (int k = 0; k < n; ++k) {
+                PEACH_MATRIX_AT(target, i, j) += PEACH_MATRIX_AT(a, i, k) * PEACH_MATRIX_AT(b, k, j);
+            }
         }
     }
 }
