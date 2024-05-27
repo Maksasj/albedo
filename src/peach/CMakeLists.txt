@@ -1,2 +1,0 @@
-FILE(GLOB_RECURSE PEACH_SRC_FILES *.c)
-add_library(peach STATIC ${PEACH_SRC_FILES})
