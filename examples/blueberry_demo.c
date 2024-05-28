@@ -1,5 +1,14 @@
 #include <time.h>
 
+#include <math.h>
+#include <stdlib.h>
+
+#define PEACH_POWF powf
+#define PEACH_MALLOC malloc
+#define PEACH_FREE free
+
+#define BLUEBERRY_IMPLEMENTATION
+#define PEACH_IMPLEMENTATION
 #include "blueberry/blueberry.h"
 
 int main() {
@@ -35,7 +44,6 @@ int main() {
     PEACH_MATRIX_AT(outputs[3], 0, 0) = 1.0f;
 
     int arc[] = { 2, 2, 1 };
-
     BlueBerryModel* model = blueb_new_model(arc, 3);
     blueb_rand_model(model, -1.0f, 1.0f);
 
@@ -49,7 +57,6 @@ int main() {
 
         peach_matrix_print(model->neurons[model->count - 1]);
     }
-
 
     blueb_free_model(model);
 

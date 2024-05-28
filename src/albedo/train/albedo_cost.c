@@ -36,7 +36,7 @@ kiwi_fixed_t albedo_calculate_continuous_result_cost(
 ) {
     kiwi_fixed_t cost = 0;
 
-    for(int t = 0; t < testCases; ++t) {
+    for(unsigned int t = 0; t < testCases; ++t) {
         albedo_reset_model_neurons_value(model);
 
         for(int s = 0; s < maxStep; ++s) {

@@ -18,9 +18,9 @@ typedef struct Arc {
 void init_arc(Arc* arc);
 void print_arc(Arc* arc);
 void feed_forward(Arc* arc, peach_matrix_t* input);
-float arc_cost(Arc* arc, peach_matrix_t* inputs[], peach_matrix_t* outputs[], unsigned int count);
+float arc_cost(Arc* arc, peach_matrix_t* inputs[], peach_matrix_t* outputs[], peach_size_t count);
 
-void calc_gradient(Arc* arc, Arc* gradient, peach_matrix_t* inputs[], peach_matrix_t* outputs[], unsigned int sampleCount) {
+void calc_gradient(Arc* arc, Arc* gradient, peach_matrix_t* inputs[], peach_matrix_t* outputs[], peach_size_t sampleCount) {
     peach_matrix_fill(gradient->bias0, 0.0f);
     peach_matrix_fill(gradient->bias1, 0.0f);
     peach_matrix_fill(gradient->weights, 0.0f);
@@ -29,11 +29,11 @@ void calc_gradient(Arc* arc, Arc* gradient, peach_matrix_t* inputs[], peach_matr
     
     static float epsilon = 0.05f;
 
-    for(int t = 0; t < sampleCount; ++t) {
-        unsigned int weightSize = gradient->weights->rows * gradient->weights->cols;
+    for(peach_size_t t = 0; t < sampleCount; ++t) {
+        peach_size_t weightSize = gradient->weights->rows * gradient->weights->cols;
 
         // Weights
-        for(int i = 0; i < weightSize; ++i) {
+        for(peach_size_t i = 0; i < weightSize; ++i) {
             float saved = arc->weights->value[i];
             arc->weights->value[i] += epsilon;
 
@@ -43,10 +43,10 @@ void calc_gradient(Arc* arc, Arc* gradient, peach_matrix_t* inputs[], peach_matr
             arc->weights->value[i] = saved;        
         } 
 
-        unsigned int bias0Size = gradient->bias0->rows * gradient->bias0->cols;
+        peach_size_t bias0Size = gradient->bias0->rows * gradient->bias0->cols;
 
         // Bias0
-        for(int i = 0; i < bias0Size; ++i) {
+        for(peach_size_t i = 0; i < bias0Size; ++i) {
             float saved = arc->bias0->value[i];
             arc->bias0->value[i] += epsilon;
 
@@ -56,10 +56,10 @@ void calc_gradient(Arc* arc, Arc* gradient, peach_matrix_t* inputs[], peach_matr
             arc->bias0->value[i] = saved;        
         } 
 
-        unsigned int bias1Size = gradient->bias1->rows * gradient->bias1->cols;
+        peach_size_t bias1Size = gradient->bias1->rows * gradient->bias1->cols;
 
         // Bias1
-        for(int i = 0; i < bias1Size; ++i) {
+        for(peach_size_t i = 0; i < bias1Size; ++i) {
             float saved = arc->bias1->value[i];
             arc->bias1->value[i] += epsilon;
 
@@ -167,20 +167,20 @@ void feed_forward(Arc* arc, peach_matrix_t* input) {
     peach_matrix_apply_sigmoid(arc->outputs);
 }
 
-float arc_cost(Arc* arc, peach_matrix_t* inputs[], peach_matrix_t* outputs[], unsigned int count) {
+float arc_cost(Arc* arc, peach_matrix_t* inputs[], peach_matrix_t* outputs[], peach_size_t count) {
     float cost = 0.0f;
 
-    for(int t = 0; t < count; ++t) {
+    for(peach_size_t t = 0; t < count; ++t) {
         peach_matrix_t* input = inputs[t];
         peach_matrix_t* output = outputs[t];
         
         feed_forward(arc, input);
 
-        unsigned int rows = output->rows;
-        unsigned int cols = output->cols;
+        peach_size_t rows = output->rows;
+        peach_size_t cols = output->cols;
 
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
+        for (peach_size_t i = 0; i < rows; ++i) {
+            for (peach_size_t j = 0; j < cols; ++j) {
                 float d = PEACH_MATRIX_AT(arc->outputs, i, j) - PEACH_MATRIX_AT(output, i, j);
                 cost += d*d;
             }
