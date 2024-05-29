@@ -36,11 +36,12 @@ typedef float peach_float_t;
 
 #define PEACH_INLINE static inline
 #define PEACH_EULER_NUMBER 2.718281f
+#define PEACH_NULL ((void*) 0)
 
 #define PEACH_MULTIPLY(A, B) (A) * (B)
 #define PEACH_MATRIX_AT(M, ROW, COL) ((M)->value[(ROW) * M->cols + (COL)])
 
-#define PEACH_RANDOM_FLOAT (PEACH_RAND() / (peach_float_t) RAND_MAX)
+#define PEACH_RANDOM_FLOAT (PEACH_RAND() / 65535.0f)
 
 typedef struct peach_matrix_t {
     peach_size_t rows;
@@ -57,6 +58,7 @@ PEACH_INLINE peach_matrix_t* paech_new_matrix_square(peach_size_t size);
 PEACH_INLINE peach_matrix_t* paech_new_matrix_random(peach_size_t rows, peach_size_t cols, peach_float_t min, peach_float_t max);
 
 PEACH_INLINE peach_matrix_t* paech_copy_matrix(peach_matrix_t* src);
+PEACH_INLINE peach_matrix_t* paech_copy_matrix_empty(peach_matrix_t* src);
 
 PEACH_INLINE void peach_free_matrix(peach_matrix_t* matrix);
 
@@ -134,6 +136,16 @@ PEACH_INLINE peach_matrix_t* paech_copy_matrix(peach_matrix_t* src) {
     return matrix;
 }
 
+PEACH_INLINE peach_matrix_t* paech_copy_matrix_empty(peach_matrix_t* src) {
+    const peach_size_t rows = src->rows;
+    const peach_size_t cols = src->cols;
+
+    peach_matrix_t* matrix = paech_new_matrix(rows, cols);
+    peach_matrix_fill(matrix, 0);
+
+    return matrix;
+}
+
 PEACH_INLINE void peach_free_matrix(peach_matrix_t* matrix) {
     PEACH_FREE(matrix->value);
     PEACH_FREE(matrix);
@@ -165,9 +177,7 @@ PEACH_INLINE void peach_matrix_copy_content_target(peach_matrix_t* dst, peach_ma
     PEACH_ASSERT(dst->rows == src->rows);
     PEACH_ASSERT(dst->cols == src->cols);
 
-    const peach_size_t rows = dst->rows;
-    const peach_size_t cols = dst->cols;
-    const peach_size_t size = rows * cols;
+    const peach_size_t size = dst->rows * dst->cols;
 
     for(peach_size_t i = 0; i < size; ++i)
         dst->value[i] = src->value[i];
@@ -177,11 +187,9 @@ PEACH_INLINE void peach_matrix_scale(peach_matrix_t* target, peach_float_t value
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) *= value;
-        }
-    }
 }
 
 PEACH_INLINE peach_matrix_t* peach_matrix_sum(peach_matrix_t* a, peach_matrix_t* b) {
@@ -193,11 +201,9 @@ PEACH_INLINE peach_matrix_t* peach_matrix_sum(peach_matrix_t* a, peach_matrix_t*
 
     peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) + PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 
     return result;
 }
@@ -211,11 +217,9 @@ PEACH_INLINE peach_matrix_t* peach_matrix_sub(peach_matrix_t* a, peach_matrix_t*
 
     peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) - PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 
     return result;
 }
@@ -229,11 +233,9 @@ PEACH_INLINE peach_matrix_t* peach_matrix_mul(peach_matrix_t* a, peach_matrix_t*
 
     peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) * PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 
     return result;
 }
@@ -247,11 +249,9 @@ PEACH_INLINE peach_matrix_t* peach_matrix_div(peach_matrix_t* a, peach_matrix_t*
 
     peach_matrix_t* result = paech_new_matrix(rows, cols);
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(result, i, j) = PEACH_MATRIX_AT(a, i, j) / PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 
     return result;
 }
@@ -286,11 +286,9 @@ PEACH_INLINE void peach_matrix_sum_target(peach_matrix_t* target, peach_matrix_t
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) += PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 }
 
 PEACH_INLINE void peach_matrix_sub_target(peach_matrix_t* target, peach_matrix_t* b) {
@@ -300,11 +298,9 @@ PEACH_INLINE void peach_matrix_sub_target(peach_matrix_t* target, peach_matrix_t
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) -= PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 }
 
 PEACH_INLINE void peach_matrix_mul_target(peach_matrix_t* target, peach_matrix_t* b) {
@@ -314,11 +310,9 @@ PEACH_INLINE void peach_matrix_mul_target(peach_matrix_t* target, peach_matrix_t
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) *= PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 }
 
 PEACH_INLINE void peach_matrix_div_target(peach_matrix_t* target, peach_matrix_t* b) {
@@ -328,11 +322,9 @@ PEACH_INLINE void peach_matrix_div_target(peach_matrix_t* target, peach_matrix_t
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) /= PEACH_MATRIX_AT(b, i, j);
-        }
-    }
 }
 
 PEACH_INLINE void peach_matrix_dot_target(peach_matrix_t* target, peach_matrix_t* a, peach_matrix_t* b) {
@@ -358,27 +350,22 @@ PEACH_INLINE void peach_matrix_apply_sigmoid(peach_matrix_t* target) {
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
-            const peach_float_t value = peach_sigmoid(PEACH_MATRIX_AT(target, i, j));
-            PEACH_MATRIX_AT(target, i, j) = value;
-        }
-    }
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
+            PEACH_MATRIX_AT(target, i, j) = peach_sigmoid(PEACH_MATRIX_AT(target, i, j));
 }
 
 PEACH_INLINE void peach_matrix_apply_relu(peach_matrix_t* target) {
     const peach_size_t rows = target->rows;
     const peach_size_t cols = target->cols;
 
-    for (peach_size_t i = 0; i < rows; ++i) {
-        for (peach_size_t j = 0; j < cols; ++j) {
+    for (peach_size_t i = 0; i < rows; ++i)
+        for (peach_size_t j = 0; j < cols; ++j)
             PEACH_MATRIX_AT(target, i, j) = peach_relu(PEACH_MATRIX_AT(target, i, j));
-        }
-    }
 }
 
 PEACH_INLINE void peach_matrix_print(peach_matrix_t* m) {
-    if(m == NULL) {
+    if(m == PEACH_NULL) {
         PEACH_PRINT("NULL\n");
         return;
     }

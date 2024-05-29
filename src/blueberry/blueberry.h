@@ -93,7 +93,7 @@ BlueBerryModel* blueb_copy_model(BlueBerryModel* src) {
     BlueBerryModel* model = (BlueBerryModel*) BLUEB_MALLOC(sizeof(BlueBerryModel));
 
     model->weights = (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * (archSize - 1));
-    model->biases = (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * (archSize - 1));
+    model->biases =  (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * (archSize - 1));
     model->neurons = (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * archSize);
 
     model->neurons[0] = paech_copy_matrix(src->neurons[0]);
@@ -102,6 +102,26 @@ BlueBerryModel* blueb_copy_model(BlueBerryModel* src) {
         model->weights[i - 1] = paech_copy_matrix(src->weights[i - 1]);
         model->biases[i - 1] = paech_copy_matrix(src->biases[i - 1]);
         model->neurons[i] = paech_copy_matrix(src->neurons[i]);
+    }
+
+    return model;
+}
+
+BlueBerryModel* blueb_copy_model_arc(BlueBerryModel* src) {
+    const peach_size_t archSize = src->count;
+
+    BlueBerryModel* model = (BlueBerryModel*) BLUEB_MALLOC(sizeof(BlueBerryModel));
+
+    model->weights = (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * (archSize - 1));
+    model->biases =  (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * (archSize - 1));
+    model->neurons = (peach_matrix_t**) BLUEB_MALLOC(sizeof(peach_matrix_t*) * archSize);
+
+    model->neurons[0] = paech_copy_matrix_empty(src->neurons[0]);
+
+    for(peach_size_t i = 1; i < archSize; ++i) {
+        model->weights[i - 1] = paech_copy_matrix_empty(src->weights[i - 1]);
+        model->biases[i - 1] = paech_copy_matrix_empty(src->biases[i - 1]);
+        model->neurons[i] = paech_copy_matrix_empty(src->neurons[i]);
     }
 
     return model;
@@ -175,7 +195,6 @@ void blueb_finite_difference(
     peach_size_t count
 ) {
     blueb_fill_model(gradient, 0.0f);
-
     const peach_size_t layers = model->count - 1;
 
     peach_float_t cost = blueb_mse_cost(model, inputs, outputs, count);
@@ -269,7 +288,7 @@ void blueb_train_gradient_descent(
     peach_size_t epochs,
     peach_float_t learningRate
 ) {
-    BlueBerryModel* gradient = blueb_copy_model(model);
+    BlueBerryModel* gradient = blueb_copy_model_arc(model);
 
     for(peach_size_t e = 0; e < epochs; ++e) {
         blueb_finite_difference(model, gradient, inputs, outputs, count);
@@ -277,8 +296,6 @@ void blueb_train_gradient_descent(
     }
 
     blueb_free_model(gradient);
-    
-    return;
 }
 
 void blueb_print_model(BlueBerryModel* model) {
