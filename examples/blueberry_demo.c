@@ -14,34 +14,25 @@
 int main() {
     srand(time(0));
 
-    peach_matrix_t* inputs[] = {
-        paech_new_matrix(1, 2),
-        paech_new_matrix(1, 2),
-        paech_new_matrix(1, 2),
-        paech_new_matrix(1, 2),
+    peach_float_t itmp[] = {
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f
     };
 
-    peach_matrix_t* outputs[] = {
-        paech_new_matrix(1, 1),
-        paech_new_matrix(1, 1),
-        paech_new_matrix(1, 1),
-        paech_new_matrix(1, 1),
+    peach_matrix_t* inputs = paech_new_matrix(4, 2);
+    peach_matrix_fill_values(inputs, itmp);
+
+    peach_float_t otmp[] = {
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f
     };
 
-    for(int i = 0; i < 4; ++i) {
-        peach_matrix_fill(inputs[i], 0.0f);
-        peach_matrix_fill(outputs[i], 0.0f);
-    }
-
-    // Setup inputs
-    PEACH_MATRIX_AT(inputs[1], 0, 0) = 1.0f;
-    PEACH_MATRIX_AT(inputs[2], 0, 1) = 1.0f;
-    
-    PEACH_MATRIX_AT(inputs[3], 0, 0) = 1.0f;
-    PEACH_MATRIX_AT(inputs[3], 0, 1) = 1.0f;
-
-    // Setup outputs
-    PEACH_MATRIX_AT(outputs[3], 0, 0) = 1.0f;
+    peach_matrix_t* outputs = paech_new_matrix(4, 1);
+    peach_matrix_fill_values(outputs, otmp);
 
     int arc[] = { 2, 2, 1 };
     BlueBerryModel* model = blueb_new_model(arc, 3);
@@ -53,7 +44,7 @@ int main() {
 
     for(int i = 0; i < 4; ++i) {
         printf("Test case: %d\n", i);
-        blueb_feedforward(model, inputs[i]);
+        blueb_feedforward_values(model, PEACH_MATRIX_ROW(inputs, i));
 
         peach_matrix_print(model->neurons[model->count - 1]);
     }

@@ -36,32 +36,23 @@ BlueBerryModel* blueb_copy_model(BlueBerryModel* src);
 void blueb_fill_model(BlueBerryModel* model, peach_float_t value);
 void blueb_rand_model(BlueBerryModel* model, peach_float_t min, peach_float_t max);
 
+void blueb_feed_values(BlueBerryModel* model, peach_float_t* input);
 void blueb_feed(BlueBerryModel* model, peach_matrix_t* input);
 void blueb_forward(BlueBerryModel* model);
+
+void blueb_feedforward_values(BlueBerryModel* model, peach_float_t* input);
 void blueb_feedforward(BlueBerryModel* model, peach_matrix_t* input);
 
-peach_float_t blueb_mse_cost(
-    BlueBerryModel* model, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count);
+peach_float_t blueb_mse_cost(BlueBerryModel* model, peach_matrix_t* inputs, peach_matrix_t* outputs, peach_size_t count);
+peach_float_t blueb_mse_cost_arr(BlueBerryModel* model, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count);
 
-void blueb_finite_difference(
-    BlueBerryModel* model, 
-    BlueBerryModel* gradient, 
-    peach_matrix_t** inputs, 
-    peach_matrix_t** outputs, 
-    peach_size_t count
-);
+void blueb_finite_difference(BlueBerryModel* model, BlueBerryModel* gradient, peach_matrix_t* inputs, peach_matrix_t* outputs, peach_size_t count);
+void blueb_finite_difference_arr(BlueBerryModel* model, BlueBerryModel* gradient, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count);
 
-void blueb_learn_gradient(
-    BlueBerryModel* model, BlueBerryModel* gradient, peach_float_t learningRate);
+void blueb_learn_gradient(BlueBerryModel* model, BlueBerryModel* gradient, peach_float_t learningRate);
 
-void blueb_train_gradient_descent(
-    BlueBerryModel* model,
-    peach_matrix_t** inputs, 
-    peach_matrix_t** outputs, 
-    peach_size_t count,
-    peach_size_t epochs,
-    peach_float_t learningRate
-);
+void blueb_train_gradient_descent(BlueBerryModel* model, peach_matrix_t* inputs, peach_matrix_t* outputs, peach_size_t count,peach_size_t epochs,peach_float_t learningRate);
+void blueb_train_gradient_descent_arr(BlueBerryModel* model, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count,peach_size_t epochs,peach_float_t learningRate);
 
 void blueb_print_model(BlueBerryModel* model);
 
@@ -145,8 +136,12 @@ void blueb_rand_model(BlueBerryModel* model, peach_float_t min, peach_float_t ma
     }
 }
 
+void blueb_feed_values(BlueBerryModel* model, peach_float_t* input) {
+    peach_matrix_fill_values(model->neurons[0], input);
+}
+
 void blueb_feed(BlueBerryModel* model, peach_matrix_t* input) {
-    peach_matrix_copy_content_target(model->neurons[0], input);
+    blueb_feed_values(model, input->value);
 }
 
 void blueb_forward(BlueBerryModel* model) {
@@ -160,12 +155,47 @@ void blueb_forward(BlueBerryModel* model) {
     }
 }
 
+void blueb_feedforward_values(BlueBerryModel* model, peach_float_t* input) {
+    blueb_feed_values(model, input);
+    blueb_forward(model);
+}
+
 void blueb_feedforward(BlueBerryModel* model, peach_matrix_t* input) {
     blueb_feed(model, input);
     blueb_forward(model);
 }
 
-peach_float_t blueb_mse_cost(BlueBerryModel* model, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count) {
+peach_float_t blueb_mse_cost(BlueBerryModel* model, peach_matrix_t* inputs, peach_matrix_t* outputs, peach_size_t count) {
+    peach_matrix_t* output = model->neurons[model->count - 1]; 
+
+    // Todo
+    /*
+    assert(output->rows == outputs[0]->rows);
+    assert(output->cols == outputs[0]->cols);
+    */
+
+    peach_float_t cost = 0.0f;
+
+    peach_matrix_t* input = paech_new_matrix(1, inputs->cols);
+
+    for(peach_size_t i = 0; i < count; ++i) {
+        peach_matrix_fill_values(input, PEACH_MATRIX_ROW(inputs, i));
+        blueb_feedforward(model, input);
+
+        peach_size_t size = output->rows * output->cols;
+
+        for(peach_size_t j = 0; j < size; ++j) {
+            peach_float_t d = output->value[j] - PEACH_MATRIX_AT(outputs, i, j);
+            cost += d * d;
+        }
+    }
+
+    peach_free_matrix(input);
+
+    return cost;
+}
+
+peach_float_t blueb_mse_cost_arr(BlueBerryModel* model, peach_matrix_t** inputs, peach_matrix_t** outputs, peach_size_t count) {
     peach_matrix_t* output = model->neurons[model->count - 1]; 
 
     assert(output->rows == outputs[0]->rows);
@@ -190,8 +220,8 @@ peach_float_t blueb_mse_cost(BlueBerryModel* model, peach_matrix_t** inputs, pea
 void blueb_finite_difference(
     BlueBerryModel* model, 
     BlueBerryModel* gradient, 
-    peach_matrix_t** inputs, 
-    peach_matrix_t** outputs, 
+    peach_matrix_t* inputs, 
+    peach_matrix_t* outputs, 
     peach_size_t count
 ) {
     blueb_fill_model(gradient, 0.0f);
@@ -242,6 +272,61 @@ void blueb_finite_difference(
     }
 }
 
+void blueb_finite_difference_arr(
+    BlueBerryModel* model, 
+    BlueBerryModel* gradient, 
+    peach_matrix_t** inputs, 
+    peach_matrix_t** outputs, 
+    peach_size_t count
+) {
+    blueb_fill_model(gradient, 0.0f);
+    const peach_size_t layers = model->count - 1;
+
+    peach_float_t cost = blueb_mse_cost_arr(model, inputs, outputs, count);
+
+    static peach_float_t epsilon = 0.05f;
+
+    for(peach_size_t t = 0; t < count; ++t) {
+        // Weights
+        for(peach_size_t w = 0; w < layers; ++w) {
+            peach_matrix_t* weights = model->weights[w];
+            peach_matrix_t* gWeights = gradient->weights[w];
+
+            const peach_size_t size = weights->rows * weights->cols;
+            
+            for(peach_size_t i = 0; i < size; ++i) {
+                peach_float_t saved = weights->value[i];
+
+                weights->value[i] += epsilon;
+
+                peach_float_t dcost = blueb_mse_cost_arr(model, inputs, outputs, count);
+                gWeights->value[i] += (dcost - cost) / epsilon;
+
+                weights->value[i] = saved;
+            }
+        }
+
+        // Biases
+        for(peach_size_t b = 0; b < layers; ++b) {
+            peach_matrix_t* biases = model->biases[b];
+            peach_matrix_t* gBiases = gradient->weights[b];
+
+            const peach_size_t size = biases->rows * biases->cols;
+            
+            for(peach_size_t i = 0; i < size; ++i) {
+                peach_float_t saved = biases->value[i];
+
+                biases->value[i] += epsilon;
+
+                peach_float_t dcost = blueb_mse_cost_arr(model, inputs, outputs, count);
+                gBiases->value[i] += (dcost - cost) / epsilon;
+
+                biases->value[i] = saved;
+            }
+        }
+    }
+}
+
 void blueb_learn_gradient(BlueBerryModel* model, BlueBerryModel* gradient, peach_float_t learningRate) {
     const peach_size_t layers = model->count - 1;
 
@@ -280,7 +365,18 @@ void blueb_free_model(BlueBerryModel* model) {
     BLUEB_FREE(model);
 }
 
-void blueb_train_gradient_descent(
+void blueb_train_gradient_descent(BlueBerryModel* model, peach_matrix_t* inputs, peach_matrix_t* outputs, peach_size_t count, peach_size_t epochs,peach_float_t learningRate) {
+    BlueBerryModel* gradient = blueb_copy_model(model);
+
+    for(peach_size_t e = 0; e < epochs; ++e) {
+        blueb_finite_difference(model, gradient, inputs, outputs, count);
+        blueb_learn_gradient(model, gradient, learningRate);
+    }
+
+    blueb_free_model(gradient);
+}
+
+void blueb_train_gradient_descent_arr(
     BlueBerryModel* model,
     peach_matrix_t** inputs, 
     peach_matrix_t** outputs, 
@@ -291,7 +387,7 @@ void blueb_train_gradient_descent(
     BlueBerryModel* gradient = blueb_copy_model_arc(model);
 
     for(peach_size_t e = 0; e < epochs; ++e) {
-        blueb_finite_difference(model, gradient, inputs, outputs, count);
+        blueb_finite_difference_arr(model, gradient, inputs, outputs, count);
         blueb_learn_gradient(model, gradient, learningRate);
     }
 

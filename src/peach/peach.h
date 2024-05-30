@@ -29,19 +29,38 @@
     #include <stdlib.h>
 
     #define PEACH_RAND rand
+    #define PEACH_RAND_MAX RAND_MAX 
 #endif
 
-typedef unsigned long long peach_size_t;
+typedef unsigned char peach_u8_t;
+typedef unsigned short peach_u16_t;
+typedef unsigned int peach_u32_t;
+typedef unsigned long long peach_u64_t;
+
+typedef signed char peach_i8_t;
+typedef signed short peach_i16_t;
+typedef signed int peach_i32_t;
+typedef signed long long peach_i64_t;
+
+#ifndef PEACH_SIZE_T
+    #define PEACH_SIZE_T peach_u64_t
+#endif
+
+typedef PEACH_SIZE_T peach_size_t;
 typedef float peach_float_t;
 
-#define PEACH_INLINE static inline
+#ifndef PEACH_INLINE
+    #define PEACH_INLINE static inline
+#endif
+
 #define PEACH_EULER_NUMBER 2.718281f
 #define PEACH_NULL ((void*) 0)
 
 #define PEACH_MULTIPLY(A, B) (A) * (B)
 #define PEACH_MATRIX_AT(M, ROW, COL) ((M)->value[(ROW) * M->cols + (COL)])
+#define PEACH_MATRIX_ROW(M, ROW) (&(M)->value[(ROW) * M->cols])
 
-#define PEACH_RANDOM_FLOAT (PEACH_RAND() / 65535.0f)
+#define PEACH_RANDOM_FLOAT (PEACH_RAND() / (peach_float_t) PEACH_RAND_MAX)
 
 typedef struct peach_matrix_t {
     peach_size_t rows;
@@ -64,6 +83,7 @@ PEACH_INLINE void peach_free_matrix(peach_matrix_t* matrix);
 
 PEACH_INLINE void peach_matrix_fill(peach_matrix_t* target, peach_float_t value);
 PEACH_INLINE void peach_matrix_rand(peach_matrix_t* target, peach_float_t min, peach_float_t max);
+PEACH_INLINE void peach_matrix_fill_values(peach_matrix_t* dst, peach_float_t* values);
 PEACH_INLINE void peach_matrix_copy_content_target(peach_matrix_t* dst, peach_matrix_t* src);
 PEACH_INLINE void peach_matrix_scale(peach_matrix_t* target, peach_float_t value);
 
@@ -121,7 +141,6 @@ PEACH_INLINE peach_matrix_t* paech_new_matrix_square(peach_size_t size) {
 
 PEACH_INLINE peach_matrix_t* paech_new_matrix_random(peach_size_t rows, peach_size_t cols, peach_float_t min, peach_float_t max) {
     peach_matrix_t* matrix = paech_new_matrix(rows, cols);
-
     peach_matrix_rand(matrix, min, max);
     return matrix;
 }
@@ -173,14 +192,18 @@ PEACH_INLINE void peach_matrix_rand(peach_matrix_t* target, peach_float_t min, p
     }
 }
 
+PEACH_INLINE void peach_matrix_fill_values(peach_matrix_t* dst, peach_float_t* values) {
+    const peach_size_t size = dst->rows * dst->cols;
+
+    for(peach_size_t i = 0; i < size; ++i)
+        dst->value[i] = values[i];
+}
+
 PEACH_INLINE void peach_matrix_copy_content_target(peach_matrix_t* dst, peach_matrix_t* src) {
     PEACH_ASSERT(dst->rows == src->rows);
     PEACH_ASSERT(dst->cols == src->cols);
 
-    const peach_size_t size = dst->rows * dst->cols;
-
-    for(peach_size_t i = 0; i < size; ++i)
-        dst->value[i] = src->value[i];
+    peach_matrix_fill_values(dst, src->value);
 }
 
 PEACH_INLINE void peach_matrix_scale(peach_matrix_t* target, peach_float_t value) {
@@ -339,9 +362,8 @@ PEACH_INLINE void peach_matrix_dot_target(peach_matrix_t* target, peach_matrix_t
         for (peach_size_t j = 0; j < cols; ++j) {
             PEACH_MATRIX_AT(target, i, j) = 0;
 
-            for (peach_size_t k = 0; k < n; ++k) {
+            for (peach_size_t k = 0; k < n; ++k)
                 PEACH_MATRIX_AT(target, i, j) += PEACH_MATRIX_AT(a, i, k) * PEACH_MATRIX_AT(b, k, j);
-            }
         }
     }
 }
