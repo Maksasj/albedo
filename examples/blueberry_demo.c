@@ -9,7 +9,7 @@
 
 #define BLUEBERRY_IMPLEMENTATION
 #define PEACH_IMPLEMENTATION
-#include "blueberry/blueberry.h"
+#include "blueberry.h"
 
 int main() {
     srand(time(0));

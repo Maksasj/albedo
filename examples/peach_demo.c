@@ -3,7 +3,7 @@
 #include <math.h>
 
 #define PEACH_IMPLEMENTATION
-#include "peach/peach.h"
+#include "peach.h"
 
 typedef struct Arc {
     peach_matrix_t* inputs;

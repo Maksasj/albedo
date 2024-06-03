@@ -1,5 +1,7 @@
 include_directories("../src")
-include_directories("../src/peach")
+
+include_directories("../3dparty/caifu")
+include_directories("../3dparty/caifu/lemon")
 
 include_directories("../3dparty/stb")
 
