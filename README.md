@@ -1,6 +1,13 @@
-<h1 align="center" id="title">albedo</h1>
+# albedo 🪬 
+albedo - is a simple neural cellular automata framework written in C
 
-<p align="center"><img src="https://github.com/Maksasj/albedo/blob/master/logo.gif" alt="project-image"></p>
+<p align="center">
+    <img src="https://github.com/Maksasj/albedo/blob/master/logo.gif" alt="project-image">
+</p>
+
+> Neural cellular automata learns to draw digit **3**
+
+### Overview
 
 Nowadays there are many models and architectures of neural networks. But more or less they are all based on very similar principles, such as layers of neurons, weights, bias, etc. But what if we try to rethink neural networks into something more organic? What if we combine neural networks and cellular automata?
 
@@ -10,66 +17,39 @@ Albedo is a cellular automaton (similar to [Game Of Live](https://en.wikipedia.o
 
 > albedo is not a new javascript framework btw !
 
-## Table of Contents
-- Lore
-- Building
-- Example
-- License
+### Links
+1. Live demonstration of a albedo is **coming soon** [maksasj.github.io/albedo]()
+2. Source code avaiable at [github.com/Maksasj/albedo](https://github.com/Maksasj/albedo)
+3. **blueberry.h** and other C libraries source code [github.com/Maksasj/caifu](https://github.com/Maksasj/caifu)
+
+Cool looking widgets 
+<img src="https://img.shields.io/github/stars/Maksasj/albedo" alt="stars">
+<img src="https://img.shields.io/github/license/Maksasj/bebone" alt="build">
 
 ## Building
-```bash
-cmake -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/release && ./build/release/examples/albedo_image_example
-```
+1. **Build manually**
+  First of all requirements:
+    - Cmake (At least version 3.21)
+    - Ninja (At least version 1.11.1)
+    - C++ compiler (Have test with Clang 15.0.5 and GCC 12.2.0) 
 
-## Example
-```c
-#include "albedo_visualization.h"
-#include "albedo/albedo.h"
+    Firstly lets clone albedo locally(note that you also need to clone all albedo git submodules).
 
-#define GRID_WIDTH 8
-#define GRID_HEIGHT 8
+    Secondly lets configure our Cmake configuration with
+    ```bash
+    cmake -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+    ```
 
-#define TEST_CASES 4
-#define INPUT_COUNT 2
-#define OUTPUT_COUNT 1
-#define STEPS 50
+    Finally you can simply build project with cmake 
+    ```bash
+    cmake --build build/release
+    ```
 
-int main() {
-    srand(time(0));
+    Now somewhere in build directory you can find all builded examples
 
-    AlbedoNeuronValue rawInputs[TEST_CASES][INPUT_COUNT] = {
-        {{0, 0, 0.0f}, {0, 1, 0.0f}},
-        {{0, 0, 1.0f}, {0, 1, 0.0f}},
-        {{0, 0, 0.0f}, {0, 1, 1.0f}},
-        {{0, 0, 1.0f}, {0, 1, 1.0f}}
-    };
-
-    AlbedoNeuronValue rawOutputs[TEST_CASES][OUTPUT_COUNT] = {
-        {{7, 7, 0.0f}},
-        {{7, 7, 0.0f}},
-        {{7, 7, 0.0f}},
-        {{7, 7, 1.0f}}
-    };
-
-    /* Convert input/output arrays to AlbedoNeuronValue** type */
-
-    AlbedoModel* model = albedo_new_model(GRID_WIDTH, GRID_HEIGHT);
-
-    albedo_genetic_algorithm_training(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, 0.004, STEPS);
-    albedo_sumup_testing(model, inputs, outputs, TEST_CASES, INPUT_COUNT, OUTPUT_COUNT, STEPS);
-
-    /* free model, input and output data */
-
-    return 0;
-}
-```
-
-## Dataset
-```bash
-tar -xvzf mnist_png.tar.gz -C ./mnist_png
-```
+## Examples
+All examples and demos you can find under [examples](https://github.com/Maksasj/albedo/tree/master/examples) directory
 
 ## License
-Albedo is free, open source model. All code in this repository is licensed under
+albedo is free, open source model. All code in this repository is licensed under
 - MIT License ([LICENSE.md](https://github.com/Maksasj/albedo/blob/master/LICENSE.md) or https://opensource.org/license/mit/)
