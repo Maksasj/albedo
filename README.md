@@ -24,7 +24,7 @@ Albedo is a cellular automaton (similar to [Game Of Live](https://en.wikipedia.o
 
 Cool looking widgets 
 <img src="https://img.shields.io/github/stars/Maksasj/albedo" alt="stars">
-<img src="https://img.shields.io/github/license/Maksasj/bebone" alt="build">
+<img src="https://img.shields.io/github/license/Maksasj/albedo" alt="build">
 
 ## Building
 1. **Build manually**
