@@ -1,1 +1,1 @@
-# add_subdirectory(albedo)
+add_subdirectory(albedo)

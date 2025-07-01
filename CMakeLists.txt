@@ -7,6 +7,6 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_subdirectory(3dparty)
 add_subdirectory(src)
+add_subdirectory(3dparty)
 add_subdirectory(examples)

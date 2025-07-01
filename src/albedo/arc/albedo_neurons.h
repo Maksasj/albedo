@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define PEACH_IMPLEMENTATION
-#include "kiwi/kiwi.h"
+#include "kiwi.h"
 
 typedef struct AlbedoNeuronLayer {
     unsigned int width;

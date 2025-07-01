@@ -18,6 +18,7 @@ void albedo_genetic_algorithm_training_internal(
 
     AlbedoModel* models[SAMPLE_MODELS] = { NULL };
 
+    int generation_count = 1;
     kiwi_fixed_t cost = (*costFunction)(model, inputs, outputs, testCases, inputCount, outputCount, desiredSteps);
     for(int e = 0; e < ALBEDO_MAX_EPOCHS; ++e) {
         int bestIndex = -1;
@@ -26,7 +27,8 @@ void albedo_genetic_algorithm_training_internal(
         for(int m = 0; m < SAMPLE_MODELS; ++m) {
             models[m] = albedo_copy_model(model);
 
-            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, kiwi_float_to_fixed(-1.0f), kiwi_float_to_fixed(1.0f)); // Todo
+            const float current_mutation_strength = 1.0 / sqrtf((float) generation_count);
+            AlbedoWeightsLayer* dif = albedo_new_weights_layer_clamped(width, height, kiwi_float_to_fixed(-current_mutation_strength), kiwi_float_to_fixed(current_mutation_strength)); // Todo
             albedo_weights_layer_add(models[m]->weights, dif);
             albedo_free_weights_layer(dif);
         }
@@ -41,11 +43,14 @@ void albedo_genetic_algorithm_training_internal(
                 bestIndex = m;
             }
         }
-
+        
+        
         // If there is model better, tune model weights
         if(bestIndex >= 0) {
             albedo_free_weights_layer(model->weights);
             model->weights = albedo_copy_weights_layer(models[bestIndex]->weights);
+
+            generation_count += 1;
         }
         
         for(int m = 0; m < SAMPLE_MODELS; ++m) {

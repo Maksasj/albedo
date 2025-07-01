@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define PEACH_IMPLEMENTATION
-#include "kiwi/kiwi.h"
+#include "kiwi.h"
 
 #define albedo_min(a,b) (((a)<(b))?(a):(b))
 #define albedo_max(a,b) (((a)>(b))?(a):(b))
